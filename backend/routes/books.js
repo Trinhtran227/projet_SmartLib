@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const { body } = require('express-validator');
 const Book = require('../models/Book');
-const Category = require('../models/Category');
 const Publisher = require('../models/Publisher');
 const Faculty = require('../models/Faculty');
 const Department = require('../models/Department');
@@ -89,6 +88,8 @@ router.post('/upload-cover', authenticate, authorize(['ADMIN', 'LIBRARIAN']), up
     }
 });
 
+const mongoose = require('mongoose');
+
 // GET /api/books (Public - Guest/User)
 router.get('/', optionalAuth, [
     commonValidations.pagination,
@@ -106,11 +107,57 @@ router.get('/', optionalAuth, [
             limit = 10
         } = req.query;
 
-        const skip = (page - 1) * limit;
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
+
+        const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+        // Validate ObjectId filters (STRICT → return 400 if invalid)
+        if (categoryId && !isValidObjectId(categoryId)) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_CATEGORY_ID',
+                    message: 'Invalid categoryId format'
+                }
+            });
+        }
+
+        if (publisherId && !isValidObjectId(publisherId)) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_PUBLISHER_ID',
+                    message: 'Invalid publisherId format'
+                }
+            });
+        }
+
+        if (facultyId && !isValidObjectId(facultyId)) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_FACULTY_ID',
+                    message: 'Invalid facultyId format'
+                }
+            });
+        }
+
+        if (departmentId && !isValidObjectId(departmentId)) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_DEPARTMENT_ID',
+                    message: 'Invalid departmentId format'
+                }
+            });
+        }
 
         // Build query
         const query = { status: 'ACTIVE' };
 
+        // Search
         if (q) {
             query.$or = [
                 { title: { $regex: q, $options: 'i' } },
@@ -119,13 +166,17 @@ router.get('/', optionalAuth, [
             ];
         }
 
+        // Safe filters (already validated above)
         if (categoryId) query.categoryId = categoryId;
         if (publisherId) query.publisherId = publisherId;
         if (facultyId) query.facultyId = facultyId;
         if (departmentId) query.departmentId = departmentId;
-        if (year) query.year = parseInt(year);
 
-        // Get books with pagination
+        if (year && !isNaN(parseInt(year))) {
+            query.year = parseInt(year);
+        }
+
+        // Fetch data
         const [books, total] = await Promise.all([
             Book.find(query)
                 .populate('categoryId', 'name slug')
@@ -134,7 +185,8 @@ router.get('/', optionalAuth, [
                 .populate('departmentId', 'name code')
                 .sort({ createdAt: -1 })
                 .skip(skip)
-                .limit(parseInt(limit)),
+                .limit(limitNum),
+
             Book.countDocuments(query)
         ]);
 
@@ -143,11 +195,12 @@ router.get('/', optionalAuth, [
             data: books,
             meta: {
                 total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / limit)
+                page: pageNum,
+                limit: limitNum,
+                pages: Math.ceil(total / limitNum)
             }
         });
+
     } catch (error) {
         console.error('Get books error:', error);
         res.status(500).json({
@@ -585,83 +638,6 @@ router.delete('/:id', authenticate, authorize('LIBRARIAN', 'ADMIN'), [
             error: {
                 code: 'SERVER_500',
                 message: 'Failed to delete book'
-            }
-        });
-    }
-});
-
-// PATCH /api/books/:id/adjust-stock (ADMIN only)
-router.patch('/:id/adjust-stock', authenticate, authorize('ADMIN'), [
-    commonValidations.objectId('id'),
-    body('delta').isInt().withMessage('Delta must be an integer'),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { delta } = req.body;
-
-        const book = await Book.findById(id);
-        if (!book) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'NOT_FOUND_404',
-                    message: 'Book not found'
-                }
-            });
-        }
-
-        // Calculate new quantities
-        const newQuantityTotal = book.quantityTotal + delta;
-        const newQuantityAvailable = book.quantityAvailable + delta;
-
-        // Validate new quantities
-        if (newQuantityTotal < 0) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'VALIDATION_400',
-                    message: 'Total quantity cannot be negative'
-                }
-            });
-        }
-
-        if (newQuantityAvailable < 0) {
-            return res.status(400).json({
-                success: false,
-                error: {
-                    code: 'VALIDATION_400',
-                    message: 'Available quantity cannot be negative'
-                }
-            });
-        }
-
-        // Update book
-        const updatedBook = await Book.findByIdAndUpdate(
-            id,
-            {
-                quantityTotal: newQuantityTotal,
-                quantityAvailable: newQuantityAvailable
-            },
-            { new: true, runValidators: true }
-        );
-
-        res.json({
-            success: true,
-            data: {
-                book: updatedBook,
-                delta,
-                newQuantityTotal,
-                newQuantityAvailable
-            }
-        });
-    } catch (error) {
-        console.error('Adjust stock error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'SERVER_500',
-                message: 'Failed to adjust stock'
             }
         });
     }

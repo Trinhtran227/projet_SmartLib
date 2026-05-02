@@ -134,7 +134,7 @@ const MyFines: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <DollarSign className="w-5 h-5 text-accent-400" />
                                                     <span className="text-2xl font-bold text-dark-50">
-                                                        {fine.amount?.toLocaleString('vi-VN')} {fine.currency}
+                                                        {fine.amount?.toLocaleString('fr-FR')} {fine.currency}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -165,18 +165,18 @@ const MyFines: React.FC = () => {
                                             <div className="flex items-center gap-4 text-xs text-dark-500">
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="w-3 h-3" />
-                                                    Créée le : {new Date(fine.createdAt).toLocaleDateString('vi-VN')}
+                                                    Créée le : {new Date(fine.createdAt).toLocaleDateString('fr-FR')}
                                                 </div>
                                                 {fine.paidAt && (
                                                     <div className="flex items-center gap-1">
                                                         <CheckCircle className="w-3 h-3" />
-                                                        Payée le : {new Date(fine.paidAt).toLocaleDateString('vi-VN')}
+                                                        Payée le : {new Date(fine.paidAt).toLocaleDateString('fr-FR')}
                                                     </div>
                                                 )}
                                                 {fine.waivedAt && (
                                                     <div className="flex items-center gap-1">
                                                         <XCircle className="w-3 h-3" />
-                                                        Annulée le : {new Date(fine.waivedAt).toLocaleDateString('vi-VN')}
+                                                        Annulée le : {new Date(fine.waivedAt).toLocaleDateString('fr-FR')}
                                                     </div>
                                                 )}
                                             </div>
@@ -244,7 +244,7 @@ const MyFines: React.FC = () => {
                                                 Montant de l'amende
                                             </label>
                                             <p className="text-dark-50 text-lg font-semibold text-red-400">
-                                                {selectedFine.amount?.toLocaleString('vi-VN')} {selectedFine.currency}
+                                                {selectedFine.amount?.toLocaleString('fr-FR')} {selectedFine.currency}
                                             </p>
                                         </div>
                                         <div>
@@ -271,7 +271,7 @@ const MyFines: React.FC = () => {
                                                 Date de création
                                             </label>
                                             <p className="text-dark-50">
-                                                {new Date(selectedFine.createdAt).toLocaleString('vi-VN')}
+                                                {new Date(selectedFine.createdAt).toLocaleString('fr-FR')}
                                             </p>
                                         </div>
                                     </div>
@@ -304,7 +304,7 @@ const MyFines: React.FC = () => {
                                                 Date de paiement
                                             </label>
                                             <p className="text-dark-50">
-                                                {new Date(selectedFine.paidAt).toLocaleString('vi-VN')}
+                                                {new Date(selectedFine.paidAt).toLocaleString('fr-FR')}
                                             </p>
                                         </div>
                                     )}
@@ -315,7 +315,7 @@ const MyFines: React.FC = () => {
                                                 Date d'annulation
                                             </label>
                                             <p className="text-dark-50">
-                                                {new Date(selectedFine.waivedAt).toLocaleString('vi-VN')}
+                                                {new Date(selectedFine.waivedAt).toLocaleString('fr-FR')}
                                             </p>
                                         </div>
                                     )}

@@ -7,6 +7,7 @@ const { body } = require('express-validator');
 const User = require('../models/User');
 const Loan = require('../models/Loan');
 const Book = require('../models/Book');
+const Fine = require('../models/Fine');
 const LoanExtension = require('../models/LoanExtension');
 const { authenticate, authorize } = require('../middleware/auth');
 const { commonValidations, authValidations, handleValidationErrors } = require('../middleware/validation');
@@ -39,87 +40,6 @@ const upload = multer({
         } else {
             cb(new Error('Only image files are allowed'), false);
         }
-    }
-});
-
-// GET /api/users/me
-router.get('/me', authenticate, async (req, res) => {
-    try {
-        res.json({
-            success: true,
-            data: {
-                user: req.user
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'SERVER_500',
-                message: 'Failed to get user profile'
-            }
-        });
-    }
-});
-
-// GET /api/users/loans
-router.get('/loans', authenticate, [
-    commonValidations.pagination,
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { status, q, page = 1, limit = 10 } = req.query;
-        const skip = (page - 1) * limit;
-        const userId = req.user._id;
-
-        // Build query
-        const query = { readerUserId: userId };
-        if (status) {
-            // Map frontend status to backend status
-            if (status === 'RETURNED') {
-                query.status = 'CLOSED';
-            } else {
-                query.status = status;
-            }
-        }
-        if (q) {
-            query.$or = [
-                { code: { $regex: q, $options: 'i' } },
-                { 'items.bookId.title': { $regex: q, $options: 'i' } },
-                { 'items.bookId.authors': { $regex: q, $options: 'i' } }
-            ];
-        }
-
-        // Get loans with pagination
-        const [loans, total] = await Promise.all([
-            Loan.find(query)
-                .populate('items.bookId', 'title isbn authors coverImageUrl')
-                .populate('readerUserId', 'fullName email')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit)),
-            Loan.countDocuments(query)
-        ]);
-
-        res.json({
-            success: true,
-            data: loans,
-            meta: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / limit)
-            }
-        });
-    } catch (error) {
-        console.error('Get user loans error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'SERVER_500',
-                message: 'Failed to get user loans'
-            }
-        });
     }
 });
 
@@ -170,58 +90,8 @@ router.get('/me/extensions', authenticate, [
     }
 });
 
-// PUT /api/users/me
-router.put('/me', authenticate, [
-    commonValidations.name('fullName'),
-    body('email').optional().isEmail().withMessage('Invalid email format'),
-    body('email').optional().normalizeEmail(),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { fullName, email } = req.body;
-        const updates = { fullName };
-
-        // Check if email is being changed
-        if (email && email !== req.user.email) {
-            const existingUser = await User.findOne({ email });
-            if (existingUser) {
-                return res.status(409).json({
-                    success: false,
-                    error: {
-                        code: 'VALIDATION_400',
-                        message: 'Email already exists'
-                    }
-                });
-            }
-            updates.email = email;
-        }
-
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            updates,
-            { new: true, runValidators: true }
-        );
-
-        res.json({
-            success: true,
-            data: {
-                user: user.toJSON()
-            }
-        });
-    } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'SERVER_500',
-                message: 'Failed to update profile'
-            }
-        });
-    }
-});
-
-// PATCH /api/users/profile
-router.patch('/profile', authenticate, [
+// PATCH /api/users/me
+router.patch('/me', authenticate, [
     commonValidations.name('fullName'),
     body('email').optional().isEmail().withMessage('Invalid email format'),
     body('email').optional().normalizeEmail(),
@@ -284,11 +154,11 @@ router.get('/my-stats', authenticate, async (req, res) => {
             paidFines
         ] = await Promise.all([
             Loan.countDocuments({ readerUserId: userId }),
-            Loan.countDocuments({ readerUserId: userId, status: 'BORROWED' }),
+            Loan.countDocuments({ readerUserId: userId, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] } }),
             Loan.countDocuments({ readerUserId: userId, status: 'RETURNED' }),
-            Loan.countDocuments({ readerUserId: userId, status: 'OVERDUE' }),
-            Loan.countDocuments({ readerUserId: userId, status: 'OVERDUE' }),
-            Loan.countDocuments({ readerUserId: userId, status: 'RETURNED' })
+            Loan.countDocuments({ readerUserId: userId, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] }, dueDate: { $lt: new Date() } }),
+            Fine.countDocuments({ userId }),
+            Fine.countDocuments({ userId, status: 'PAID' })
         ]);
 
         res.json({
@@ -319,9 +189,6 @@ router.get('/admin-stats', authenticate, authorize(['ADMIN', 'LIBRARIAN']), asyn
     try {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
         const [
             totalBooks,
             monthlyLoans,
@@ -337,7 +204,7 @@ router.get('/admin-stats', authenticate, authorize(['ADMIN', 'LIBRARIAN']), asyn
                 lastLoginAt: { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) }
             }),
             Loan.countDocuments({
-                status: 'OPEN',
+                status: 'BORROWED',
                 dueDate: { $lt: now }
             })
         ]);
@@ -538,8 +405,8 @@ router.get('/', authenticate, authorize('ADMIN'), [
             users.map(async (user) => {
                 const [totalLoans, activeLoans, overdueLoans] = await Promise.all([
                     Loan.countDocuments({ readerUserId: user._id }),
-                    Loan.countDocuments({ readerUserId: user._id, status: 'OPEN' }),
-                    Loan.countDocuments({ readerUserId: user._id, status: 'OPEN', dueDate: { $lt: new Date() } })
+                    Loan.countDocuments({ readerUserId: user._id, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] } }),
+                    Loan.countDocuments({ readerUserId: user._id, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] }, dueDate: { $lt: new Date() } })
                 ]);
 
                 return {
@@ -830,11 +697,11 @@ router.get('/:id/stats', authenticate, authorize('ADMIN', 'LIBRARIAN'), [
             paidFines
         ] = await Promise.all([
             Loan.countDocuments({ readerUserId: id }),
-            Loan.countDocuments({ readerUserId: id, status: 'OPEN' }),
-            Loan.countDocuments({ readerUserId: id, status: 'CLOSED' }),
-            Loan.countDocuments({ readerUserId: id, status: 'OPEN', dueDate: { $lt: new Date() } }),
-            Loan.countDocuments({ readerUserId: id, status: 'OPEN', dueDate: { $lt: new Date() } }),
-            Loan.countDocuments({ readerUserId: id, status: 'CLOSED' })
+            Loan.countDocuments({ readerUserId: id, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] } }),
+            Loan.countDocuments({ readerUserId: id, status: 'RETURNED' }),
+            Loan.countDocuments({ readerUserId: id, status: { $in: ['BORROWED', 'PARTIAL_RETURN'] }, dueDate: { $lt: new Date() } }),
+            Fine.countDocuments({ userId: id }),
+            Fine.countDocuments({ userId: id, status: 'PAID' })
         ]);
 
         res.json({

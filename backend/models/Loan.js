@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const ACTIVE_LOAN_STATUSES = ['BORROWED', 'PARTIAL_RETURN'];
+
 const loanItemSchema = new mongoose.Schema({
     bookId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -64,7 +66,7 @@ const loanSchema = new mongoose.Schema({
     items: [loanItemSchema],
     status: {
         type: String,
-        enum: ['PENDING', 'BORROWED', 'PARTIAL_RETURN', 'RETURNED', 'OVERDUE', 'CANCELLED'],
+        enum: ['PENDING', 'BORROWED', 'PARTIAL_RETURN', 'RETURNED', 'CANCELLED'],
         default: 'PENDING'
     },
     notes: {
@@ -87,7 +89,6 @@ const loanSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-loanSchema.index({ code: 1 });
 loanSchema.index({ readerUserId: 1 });
 loanSchema.index({ librarianId: 1 });
 loanSchema.index({ status: 1 });
@@ -106,7 +107,7 @@ loanSchema.pre('save', function (next) {
 
 // Virtual for checking if loan is overdue
 loanSchema.virtual('isOverdue').get(function () {
-    return this.status === 'OPEN' && new Date() > this.dueDate;
+    return ACTIVE_LOAN_STATUSES.includes(this.status) && new Date() > this.dueDate;
 });
 
 // Virtual for total items quantity

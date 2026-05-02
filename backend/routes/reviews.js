@@ -201,16 +201,22 @@ router.get('/book/:bookId', async (req, res) => {
             });
         }
 
-        // Get reviews for the book (both ACTIVE and HIDDEN for public display)
-        const reviews = await Review.find({ bookId })
-            .populate('userId', 'fullName email')
+        // Get reviews for the book (ACTIVE only for public display)
+        const reviews = await Review.find({
+            bookId,
+            status: 'ACTIVE'
+        })
+            .populate('userId', 'fullName')
             .populate('bookId', 'title author')
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
 
-        // Get total count (both ACTIVE and HIDDEN)
-        const total = await Review.countDocuments({ bookId });
+        // Get total count (ACTIVE only)
+        const total = await Review.countDocuments({
+            bookId,
+            status: 'ACTIVE'
+        });
 
         res.json({
             success: true,
@@ -252,7 +258,7 @@ router.get('/:id', authenticate, authorize('ADMIN', 'LIBRARIAN'), async (req, re
     try {
         const review = await Review.findById(req.params.id)
             .populate('bookId', 'title author')
-            .populate('userId', 'fullName email');
+            .populate('userId', 'fullName');
 
         if (!review) {
             return res.status(404).json({

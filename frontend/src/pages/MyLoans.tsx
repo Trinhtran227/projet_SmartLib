@@ -42,7 +42,7 @@ const MyLoans: React.FC = () => {
     ) || [];
 
     const currentLoansFiltered = currentLoans?.loans?.filter((loan: any) =>
-        loan.status === 'BORROWED'
+        ['BORROWED', 'PARTIAL_RETURN'].includes(loan.status)
     ) || [];
 
     const historyLoansFiltered = currentLoans?.loans?.filter((loan: any) =>
@@ -88,10 +88,10 @@ const MyLoans: React.FC = () => {
                 return 'bg-yellow-500/20 text-yellow-400';
             case 'BORROWED':
                 return 'bg-green-500/20 text-green-400';
+            case 'PARTIAL_RETURN':
+                return 'bg-orange-500/20 text-orange-400';
             case 'RETURNED':
                 return 'bg-blue-500/20 text-blue-400';
-            case 'OVERDUE':
-                return 'bg-red-500/20 text-red-400';
             default:
                 return 'bg-gray-500/20 text-gray-400';
         }
@@ -101,8 +101,8 @@ const MyLoans: React.FC = () => {
         const statusMap: { [key: string]: string } = {
             'PENDING': 'En attente d\'approbation',
             'BORROWED': 'Emprunté',
+            'PARTIAL_RETURN': 'Retour partiel',
             'RETURNED': 'Retourné',
-            'OVERDUE': 'En retard'
         };
         return statusMap[status] || status;
     };
@@ -381,7 +381,7 @@ const MyLoans: React.FC = () => {
                                                 </div>
 
                                                 <div className="flex flex-col sm:flex-row gap-2">
-                                                    {loan.status === 'BORROWED' && (
+                                                    {['BORROWED', 'PARTIAL_RETURN'].includes(loan.status) && (
                                                         <Button
                                                             variant="ghost"
                                                             onClick={() => {

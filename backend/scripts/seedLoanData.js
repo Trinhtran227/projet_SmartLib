@@ -117,7 +117,7 @@ async function seedLoanData() {
             sampleLoans.push(loan);
         }
 
-        // OVERDUE loans
+        // Overdue loans are stored as active loans with a past due date
         for (let i = 0; i < 2; i++) {
             const user = users[Math.floor(Math.random() * users.length)];
             const bookCount = Math.floor(Math.random() * 2) + 1;
@@ -140,7 +140,7 @@ async function seedLoanData() {
                 loanDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
                 dueDate: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000), // Overdue by 1-5 days
                 items: selectedBooks,
-                status: 'OVERDUE',
+                status: 'BORROWED',
                 notes: `Prêt modèle en retard ${i + 1}`
             });
 
@@ -212,20 +212,23 @@ async function seedLoanData() {
         console.log(`✅ Created ${sampleExtensions.length} sample extension requests`);
 
         // Create sample fines
-        const overdueLoans = await Loan.find({ status: 'OVERDUE' });
+        const overdueLoans = await Loan.find({
+            status: { $in: ['BORROWED', 'PARTIAL_RETURN'] },
+            dueDate: { $lt: new Date() }
+        });
         const sampleFines = [];
 
         for (let i = 0; i < overdueLoans.length; i++) {
             const loan = overdueLoans[i];
             const overdueDays = Math.ceil((new Date() - new Date(loan.dueDate)) / (1000 * 60 * 60 * 24));
-            const fineAmount = overdueDays * 5000; // 5000 VND per day
+            const fineAmount = overdueDays * 1; // 1 EUR per day
 
             const fine = new Fine({
                 loanId: loan._id,
                 userId: loan.readerUserId,
                 type: 'LATE_RETURN',
                 amount: fineAmount,
-                currency: 'VND',
+                currency: 'EUR',
                 description: `Pénalité de retour tardif de ${overdueDays} jours`,
                 status: i === 0 ? 'PENDING' : 'PAID',
                 paidAt: i === 1 ? new Date() : undefined,
@@ -239,14 +242,14 @@ async function seedLoanData() {
         const returnedLoans = await Loan.find({ status: 'RETURNED' }).limit(2);
         for (let i = 0; i < returnedLoans.length; i++) {
             const loan = returnedLoans[i];
-            const fineAmount = 50000; // 50,000 VND
+            const fineAmount = 10; // 10 EUR
 
             const fine = new Fine({
                 loanId: loan._id,
                 userId: loan.readerUserId,
                 type: 'DAMAGE',
                 amount: fineAmount,
-                currency: 'VND',
+                currency: 'EUR',
                 description: 'Pénalité pour dommage surivre',
                 status: 'PENDING'
             });
@@ -261,9 +264,9 @@ async function seedLoanData() {
         let finePolicy = await FinePolicy.findOne({ isActive: true });
         if (!finePolicy) {
             finePolicy = await FinePolicy.create({
-                lateFeePerDay: 5000,
+                lateFeePerDay: 1,
                 damageFeeRate: 0.3,
-                currency: 'VND',
+                currency: 'EUR',
                 isActive: true
             });
             console.log('✅ Created fine policy');

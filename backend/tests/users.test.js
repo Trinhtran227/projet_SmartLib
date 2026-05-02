@@ -62,35 +62,14 @@ describe('Users API Endpoints', () => {
         adminToken = adminLoginResponse.body.data.accessToken;
     });
 
-    describe('GET /api/users/me', () => {
-        it('should get current user profile', async () => {
-            const response = await request(app)
-                .get('/api/users/me')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(200);
-
-            expect(response.body.success).toBe(true);
-            expect(response.body.data.user.email).toBe('user@example.com');
-            expect(response.body.data.user.fullName).toBe('Test User');
-        });
-
-        it('should not get profile without authentication', async () => {
-            const response = await request(app)
-                .get('/api/users/me')
-                .expect(401);
-
-            expect(response.body.success).toBe(false);
-        });
-    });
-
-    describe('PUT /api/users/me', () => {
+    describe('PATCH /api/users/me', () => {
         it('should update user profile', async () => {
             const updateData = {
                 fullName: 'Updated Test User'
             };
 
             const response = await request(app)
-                .put('/api/users/me')
+                .patch('/api/users/me')
                 .set('Authorization', `Bearer ${authToken}`)
                 .send(updateData)
                 .expect(200);
@@ -105,7 +84,7 @@ describe('Users API Endpoints', () => {
             };
 
             const response = await request(app)
-                .put('/api/users/me')
+                .patch('/api/users/me')
                 .send(updateData)
                 .expect(401);
 

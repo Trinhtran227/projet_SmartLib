@@ -104,7 +104,7 @@ const sampleData = {
             location: 'Kệ A1-001',
             keywords: ['java', 'programming', 'best practices', 'software engineering'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/71kPW3SLQSL._AC_UF1000,1000_QL80_.jpg',
-            price: 450000,
+            price: 18,
         },
         {
             isbn: '9780132350884',
@@ -122,7 +122,7 @@ const sampleData = {
             location: 'Kệ A1-002',
             keywords: ['clean code', 'programming', 'software engineering', 'agile'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/41xShlnTZTL._AC_UF1000,1000_QL80_.jpg',
-            price: 380000,
+            price: 15,
         },
         {
             isbn: '9780134685992',
@@ -140,7 +140,7 @@ const sampleData = {
             location: 'Kệ A1-003',
             keywords: ['algorithms', 'computer science', 'programming', 'data structures'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/71+0xH6DkiL._AC_UF1000,1000_QL80_.jpg',
-            price: 650000,
+            price: 26,
         },
         {
             isbn: '9780134685993',
@@ -158,7 +158,7 @@ const sampleData = {
             location: 'Kệ A1-004',
             keywords: ['design patterns', 'object-oriented', 'software engineering', 'reusable'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/61oJA2mM4hL._AC_UF1000,1000_QL80_.jpg',
-            price: 420000,
+            price: 17,
         },
         {
             isbn: '9780134685994',
@@ -176,7 +176,7 @@ const sampleData = {
             location: 'Kệ A1-005',
             keywords: ['programming', 'software development', 'career', 'pragmatic'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/518FqJvR9aL._AC_UF1000,1000_QL80_.jpg',
-            price: 350000,
+            price: 14,
         },
         {
             isbn: '9780134685995',
@@ -194,7 +194,7 @@ const sampleData = {
             location: 'Kệ A1-006',
             keywords: ['javascript', 'web development', 'programming', 'frontend'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/81kqrwS1nNL._AC_UF1000,1000_QL80_.jpg',
-            price: 280000,
+            price: 11,
         },
         {
             isbn: '9780134685996',
@@ -212,7 +212,7 @@ const sampleData = {
             location: 'Kệ A1-007',
             keywords: ['python', 'programming', 'beginner', 'hands-on'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/91xS6Zt1RLL._AC_UF1000,1000_QL80_.jpg',
-            price: 320000,
+            price: 13,
         },
         {
             isbn: '9780134685997',
@@ -230,7 +230,7 @@ const sampleData = {
             location: 'Kệ A1-008',
             keywords: ['database', 'sql', 'data management', 'systems'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/61jX6V6N6tL._AC_UF1000,1000_QL80_.jpg',
-            price: 580000,
+            price: 23,
         },
         {
             isbn: '9780134685998',
@@ -248,7 +248,7 @@ const sampleData = {
             location: 'Kệ A1-009',
             keywords: ['operating systems', 'computer science', 'systems programming'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/71-Q0sZ1rGL._AC_UF1000,1000_QL80_.jpg',
-            price: 520000,
+            price: 21,
         },
         {
             isbn: '9780134685999',
@@ -266,7 +266,7 @@ const sampleData = {
             location: 'Kệ A1-010',
             keywords: ['networks', 'internet', 'protocols', 'communication'],
             coverImageUrl: 'https://m.media-amazon.com/images/I/81h4G2u7O+L._AC_UF1000,1000_QL80_.jpg',
-            price: 480000,
+            price: 19,
         },
 
         // Mathematics
@@ -715,9 +715,9 @@ async function seedData() {
 
         // Create fine policy
         await FinePolicy.create({
-            lateFeePerDay: 5000, // 5,000 VND per day
+            lateFeePerDay: 1, // 1 EUR per day
             damageFeeRate: 0.3, // 30% of book value
-            currency: 'VND',
+            currency: 'EUR',
             isActive: true,
         });
         console.log('💰 Created fine policy');

@@ -729,7 +729,7 @@ async function seedData() {
                     ],
                     loanDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
                     dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-                    status: 'OPEN',
+                    status: 'BORROWED',
                     notes: 'Livres pour le cours de programmation Java'
                 },
                 {
@@ -741,7 +741,7 @@ async function seedData() {
                     ],
                     loanDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
                     dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago (overdue)
-                    status: 'OPEN',
+                    status: 'BORROWED',
                     notes: 'Livre d\'algorithmique pour l\'examen final'
                 },
                 {
@@ -754,7 +754,7 @@ async function seedData() {
                     ],
                     loanDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
                     dueDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago
-                    status: 'CLOSED',
+                    status: 'RETURNED',
                     notes: 'Retour effectué — développement web'
                 }
             ];

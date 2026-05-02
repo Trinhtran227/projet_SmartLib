@@ -17,7 +17,4 @@ const facultySchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for better performance
-facultySchema.index({ code: 1 });
-
 module.exports = mongoose.model('Faculty', facultySchema);

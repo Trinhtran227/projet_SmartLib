@@ -22,7 +22,7 @@ const finePolicySchema = new mongoose.Schema({
     currency: {
         type: String,
         required: true,
-        default: 'VND',
+        default: 'EUR',
         uppercase: true
     },
     isActive: {
@@ -43,10 +43,10 @@ finePolicySchema.statics.getCurrent = async function () {
     if (!policy) {
         // Create default policy if none exists
         policy = await this.create({
-            lateFeePerDay: 5000, // 5,000 VND per day
+            lateFeePerDay: 1, // 1 EUR per day
             damageFeeRate: 0.3, // 30% of book value
             lostBookFeeRate: 1.0, // 100% of book value for lost books
-            currency: 'VND'
+            currency: 'EUR'
         });
     }
 

@@ -325,7 +325,7 @@ const Notifications: React.FC = () => {
                                                             <div className="text-right">
                                                                 <span className="text-sm text-dark-400">Montant :</span>
                                                                 <span className="ml-2 text-lg font-semibold text-red-400">
-                                                                    {notification.data.amount?.toLocaleString('vi-VN')} {notification.data.currency || 'VND'}
+                                                                    {notification.data.amount?.toLocaleString('fr-FR')} {notification.data.currency || 'EUR'}
                                                                 </span>
                                                             </div>
                                                         </div>

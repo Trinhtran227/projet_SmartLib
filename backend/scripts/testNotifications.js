@@ -93,7 +93,7 @@ const testNotificationSystem = async () => {
 
         // Test 8: Payment received notification
         console.log('🔔 Test 8: Payment Received Notification');
-        await notifyPaymentReceived(user._id, 50000, 'Virement bancaire');
+        await notifyPaymentReceived(user._id, 10, 'Virement bancaire');
         console.log('✅ Payment received notification created\n');
 
         // Test 9: Book approved notification

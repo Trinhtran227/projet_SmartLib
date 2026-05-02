@@ -109,7 +109,8 @@ const createSampleNotifications = async () => {
                 title: 'Paiement réussi',
                 message: `Le paiement de la pénalité a été traité avec succès. Merci !`,
                 data: {
-                    amount: 50000,
+                    amount: 10,
+                    currency: 'EUR',
                     paymentMethod: 'Virement bancaire',
                     transactionId: 'TXN' + Date.now()
                 },

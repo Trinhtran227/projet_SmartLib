@@ -20,11 +20,11 @@ router.get('/summary', authenticate, authorize('LIBRARIAN', 'ADMIN'), async (req
             overdueLoans
         ] = await Promise.all([
             Book.countDocuments({ status: 'ACTIVE' }),
-            Loan.countDocuments({ status: { $in: ['OPEN', 'PARTIAL_RETURN'] } }),
+            Loan.countDocuments({ status: 'BORROWED' }),
             User.countDocuments({ role: 'USER', status: 'ACTIVE' }),
             User.countDocuments({ role: { $in: ['LIBRARIAN', 'ADMIN'] }, status: 'ACTIVE' }),
-            Loan.countDocuments({ status: 'OPEN' }),
-            Loan.countDocuments({ status: 'OPEN', dueDate: { $lt: new Date() } })
+            Loan.countDocuments({ status: { $in: ['BORROWED', 'PARTIAL_RETURN'] } }),
+            Loan.countDocuments({ status: { $in: ['BORROWED', 'PARTIAL_RETURN'] } , dueDate: { $lt: new Date() } })
         ]);
 
         res.json({
@@ -53,8 +53,6 @@ router.get('/summary', authenticate, authorize('LIBRARIAN', 'ADMIN'), async (req
 // GET /api/stats/books-by-category (LIBRARIAN/ADMIN only)
 router.get('/books-by-category', authenticate, authorize('LIBRARIAN', 'ADMIN'), async (req, res) => {
     try {
-        const Category = require('../models/Category');
-
         const booksByCategory = await Book.aggregate([
             { $match: { status: 'ACTIVE' } },
             {

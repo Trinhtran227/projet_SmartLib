@@ -140,14 +140,14 @@ const Dashboard: React.FC = () => {
     // Pending loans for quick actions
     const { data: pendingLoans, isLoading: isLoadingPendingLoans } = useQuery({
         queryKey: ['pending-loans'],
-        queryFn: () => apiClient.getPendingLoans(1, 5, 'PENDING'),
+        queryFn: () => apiClient.getPendingLoans(1, 5),
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
     // Overdue loans
     const { data: overdueLoans, isLoading: isLoadingOverdueLoans } = useQuery({
         queryKey: ['overdue-loans'],
-        queryFn: () => apiClient.getPendingLoans(1, 5, 'OVERDUE'),
+        queryFn: () => apiClient.getOverdueLoans(1, 5),
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
@@ -692,7 +692,7 @@ const Dashboard: React.FC = () => {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => navigate('/loan-management?tab=overdue')}
+                                            onClick={() => navigate('/loan-management?tab=borrowed')}
                                             className="text-red-400 hover:text-red-300"
                                         >
                                             Voir

@@ -110,7 +110,9 @@ export interface Loan {
     loanDate: string;
     dueDate: string;
     returnDate?: string;
-    status: 'OPEN' | 'RETURNED' | 'OVERDUE';
+    status: 'PENDING' | 'BORROWED' | 'PARTIAL_RETURN' | 'RETURNED' | 'CANCELLED';
+    isOverdue?: boolean;
+    overdueDays?: number;
     items: Array<{
         bookId: {
             _id: string;

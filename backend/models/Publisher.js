@@ -27,7 +27,4 @@ publisherSchema.pre('save', function (next) {
     next();
 });
 
-// Index for better performance
-publisherSchema.index({ slug: 1 });
-
 module.exports = mongoose.model('Publisher', publisherSchema);

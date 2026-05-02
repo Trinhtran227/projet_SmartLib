@@ -23,8 +23,8 @@ async function testFineNotifications() {
         const testFine = new Fine({
             userId: user._id,
             type: 'DAMAGE',
-            amount: 50000,
-            currency: 'VND',
+            amount: 10,
+            currency: 'EUR',
             description: 'Test damage fine for notification testing',
             status: 'PENDING'
         });

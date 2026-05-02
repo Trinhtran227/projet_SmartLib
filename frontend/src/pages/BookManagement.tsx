@@ -2091,7 +2091,7 @@ const BookManagement: React.FC = () => {
                                             <div>
                                                 <label className="text-dark-400 text-sm">Prix</label>
                                                 <p className="text-dark-300 font-medium">
-                                                    {selectedBook.price?.toLocaleString() || 'N/A'}
+                                                    {selectedBook.price ? `${selectedBook.price.toLocaleString('fr-FR')} EUR` : 'N/A'}
                                                 </p>
                                             </div>
                                         </div>

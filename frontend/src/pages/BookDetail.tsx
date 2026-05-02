@@ -854,7 +854,7 @@ const BookDetail: React.FC = () => {
                                                         </span>
                                                     </div>
                                                     <span className="text-sm text-dark-400">
-                                                        {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                                        {new Date(review.createdAt).toLocaleDateString('fr-FR')}
                                                     </span>
                                                 </div>
                                                 <p className="text-dark-300 leading-relaxed">

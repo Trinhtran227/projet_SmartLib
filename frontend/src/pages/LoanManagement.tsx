@@ -12,6 +12,7 @@ import {
     Check
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { apiClient } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
@@ -21,7 +22,11 @@ import toast from 'react-hot-toast';
 
 const LoanManagement: React.FC = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<'pending' | 'borrowed' | 'extensions' | 'fines'>('pending');
+    const [searchParams] = useSearchParams();
+    const initialTab = searchParams.get('tab');
+    const [activeTab, setActiveTab] = useState<'pending' | 'borrowed' | 'extensions' | 'fines'>(
+        initialTab === 'borrowed' || initialTab === 'extensions' || initialTab === 'fines' ? initialTab : 'pending'
+    );
     const [selectedLoan, setSelectedLoan] = useState<any>(null);
     const [selectedFine, setSelectedFine] = useState<any>(null);
     const [showLoanModal, setShowLoanModal] = useState(false);
@@ -36,17 +41,20 @@ const LoanManagement: React.FC = () => {
     const [confirmMessage, setConfirmMessage] = useState('');
     const [finePolicy, setFinePolicy] = useState<any>(null);
 
+    const isLoanOverdue = (loan: any) =>
+        ['BORROWED', 'PARTIAL_RETURN'].includes(loan.status) && new Date(loan.dueDate) < new Date();
+
     // Fetch pending loans
     const { data: pendingLoans, isLoading: isLoadingLoans, refetch: refetchLoans, error: loansError } = useQuery({
         queryKey: ['pending-loans'],
-        queryFn: () => apiClient.getPendingLoans(1, 20, 'PENDING'),
+        queryFn: () => apiClient.getPendingLoans(1, 20),
         enabled: !!(user && (user.role === 'ADMIN' || user.role === 'LIBRARIAN'))
     });
 
     // Fetch borrowed loans
     const { data: borrowedLoans, isLoading: isLoadingBorrowed, refetch: refetchBorrowed } = useQuery({
         queryKey: ['borrowed-loans'],
-        queryFn: () => apiClient.getPendingLoans(1, 20, 'BORROWED'),
+        queryFn: () => apiClient.getPendingLoans(1, 20),
         enabled: !!(user && (user.role === 'ADMIN' || user.role === 'LIBRARIAN'))
     });
 
@@ -287,7 +295,6 @@ const LoanManagement: React.FC = () => {
             'BORROWED': 'Emprunté',
             'PARTIAL_RETURN': 'Retour partiel',
             'RETURNED': 'Retourné',
-            'OVERDUE': 'En retard',
             'CANCELLED': 'Annulé',
             // Fine statuses
             'PAID': 'Payé',
@@ -305,8 +312,6 @@ const LoanManagement: React.FC = () => {
                 return 'bg-green-500/20 text-green-400';
             case 'PARTIAL_RETURN':
                 return 'bg-orange-500/20 text-orange-400';
-            case 'OVERDUE':
-                return 'bg-red-500/20 text-red-400';
             case 'RETURNED':
                 return 'bg-blue-500/20 text-blue-400';
             case 'CANCELLED':
@@ -448,6 +453,14 @@ const LoanManagement: React.FC = () => {
                                                                 Date limite : {new Date(loan.dueDate).toLocaleDateString('fr-FR')}
                                                             </span>
                                                         </div>
+                                                        {isLoanOverdue(loan) && (
+                                                            <div className="flex items-center gap-2">
+                                                                <AlertTriangle className="w-4 h-4 text-red-400" />
+                                                                <span className="text-red-400 font-medium">
+                                                                    En retard
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex flex-wrap gap-2 mb-4">
@@ -683,7 +696,7 @@ const LoanManagement: React.FC = () => {
                                                         <div className="flex items-center gap-2">
                                                             <Clock className="w-4 h-4 text-green-400" />
                                                             <span className="text-dark-300">
-                                                                Jusqu'au : {new Date(extension.newDueDate).toLocaleDateString('vi-VN')}
+                                                                Jusqu'au : {new Date(extension.newDueDate).toLocaleDateString('fr-FR')}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -769,7 +782,7 @@ const LoanManagement: React.FC = () => {
                                                             <div className="flex items-center gap-2">
                                                                 <DollarSign className="w-4 h-4 text-accent-400" />
                                                                 <span className="text-dark-300">
-                                                                    {fine.amount?.toLocaleString('vi-VN')} {fine.currency}
+                                                                    {fine.amount?.toLocaleString('fr-FR')} {fine.currency}
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -867,7 +880,7 @@ const LoanManagement: React.FC = () => {
                                             Échéance
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedLoan.dueDate).toLocaleDateString('vi-VN')}
+                                            {new Date(selectedLoan.dueDate).toLocaleDateString('fr-FR')}
                                         </p>
                                     </div>
                                 </div>
@@ -917,7 +930,7 @@ const LoanManagement: React.FC = () => {
                                             Date de création
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedLoan.createdAt).toLocaleString('vi-VN')}
+                                            {new Date(selectedLoan.createdAt).toLocaleString('fr-FR')}
                                         </p>
                                     </div>
                                     <div>
@@ -1022,7 +1035,7 @@ const LoanManagement: React.FC = () => {
                                             Nouvelle échéance
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedLoan.newDueDate).toLocaleDateString('vi-VN')}
+                                            {new Date(selectedLoan.newDueDate).toLocaleDateString('fr-FR')}
                                         </p>
                                     </div>
                                 </div>
@@ -1044,7 +1057,7 @@ const LoanManagement: React.FC = () => {
                                             Date de demande
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedLoan.createdAt).toLocaleString('vi-VN')}
+                                            {new Date(selectedLoan.createdAt).toLocaleString('fr-FR')}
                                         </p>
                                     </div>
                                     <div>
@@ -1052,7 +1065,7 @@ const LoanManagement: React.FC = () => {
                                             Ancienne échéance
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedLoan.originalDueDate).toLocaleDateString('vi-VN')}
+                                            {new Date(selectedLoan.originalDueDate).toLocaleDateString('fr-FR')}
                                         </p>
                                     </div>
                                 </div>
@@ -1141,7 +1154,7 @@ const LoanManagement: React.FC = () => {
                                             Montant de l'amende
                                         </label>
                                         <p className="text-dark-50 text-lg font-semibold text-red-400">
-                                            {selectedFine.amount?.toLocaleString('vi-VN')} {selectedFine.currency}
+                                            {selectedFine.amount?.toLocaleString('fr-FR')} {selectedFine.currency}
                                         </p>
                                     </div>
                                     <div>
@@ -1173,7 +1186,7 @@ const LoanManagement: React.FC = () => {
                                             Date de création
                                         </label>
                                         <p className="text-dark-50">
-                                            {new Date(selectedFine.createdAt).toLocaleString('vi-VN')}
+                                            {new Date(selectedFine.createdAt).toLocaleString('fr-FR')}
                                         </p>
                                     </div>
                                     <div>
@@ -1181,7 +1194,7 @@ const LoanManagement: React.FC = () => {
                                             Date d'échéance
                                         </label>
                                         <p className="text-dark-50">
-                                            {selectedFine.dueDate ? new Date(selectedFine.dueDate).toLocaleDateString('vi-VN') : 'Aucune'}
+                                            {selectedFine.dueDate ? new Date(selectedFine.dueDate).toLocaleDateString('fr-FR') : 'Aucune'}
                                         </p>
                                     </div>
                                 </div>
@@ -1355,7 +1368,7 @@ const LoanManagement: React.FC = () => {
                                                             💰 Amende estimée : {((returnConditions[item.bookId._id]?.damageLevel || 10) * (finePolicy?.damageFeeRate || 0.3) * 100).toFixed(0)}% de la valeur du livre
                                                             {item.bookId?.price && (
                                                                 <span className="block text-xs text-red-400 mt-1">
-                                                                    (Prix du livre : {item.bookId.price.toLocaleString('vi-VN')} VND - Amende : {Math.round(item.bookId.price * (finePolicy?.damageFeeRate || 0.3) * (returnConditions[item.bookId._id]?.damageLevel || 10) / 100).toLocaleString('vi-VN')} VND)
+                                                                    (Prix du livre : {item.bookId.price.toLocaleString('fr-FR')} EUR - Amende : {Math.round(item.bookId.price * (finePolicy?.damageFeeRate || 0.3) * (returnConditions[item.bookId._id]?.damageLevel || 10) / 100).toLocaleString('fr-FR')} {finePolicy?.currency || 'EUR'})
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1373,7 +1386,7 @@ const LoanManagement: React.FC = () => {
                                                             💰 Amende : {(finePolicy?.lostBookFeeRate || 1.0) * 100}% de la valeur du livre
                                                             {item.bookId?.price && (
                                                                 <span className="block text-xs text-red-400 mt-1">
-                                                                    (Prix du livre : {item.bookId.price.toLocaleString('vi-VN')} VND - Amende : {Math.round(item.bookId.price * (finePolicy?.lostBookFeeRate || 1.0)).toLocaleString('vi-VN')} VND)
+                                                                    (Prix du livre : {item.bookId.price.toLocaleString('fr-FR')} EUR - Amende : {Math.round(item.bookId.price * (finePolicy?.lostBookFeeRate || 1.0)).toLocaleString('fr-FR')} {finePolicy?.currency || 'EUR'})
                                                                 </span>
                                                             )}
                                                         </div>

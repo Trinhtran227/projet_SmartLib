@@ -35,7 +35,7 @@ router.put('/', authenticate, authorize('ADMIN'), [
     handleValidationErrors
 ], async (req, res) => {
     try {
-        const { lateFeePerDay, damageFeeRate, currency = 'VND' } = req.body;
+        const { lateFeePerDay, damageFeeRate, currency = 'EUR' } = req.body;
 
         // Get current policy
         let policy = await FinePolicy.findOne({ isActive: true });

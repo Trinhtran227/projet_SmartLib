@@ -99,7 +99,7 @@ describe('Loan Endpoints', () => {
             expect(response.body.success).toBe(true);
             expect(response.body.data.readerUserId._id).toBe(user._id.toString());
             expect(response.body.data.createdByRole).toBe('USER');
-            expect(response.body.data.status).toBe('OPEN');
+            expect(response.body.data.status).toBe('PENDING');
             expect(response.body.data.items).toHaveLength(1);
 
             // Verify book quantity was reduced
@@ -183,7 +183,7 @@ describe('Loan Endpoints', () => {
                         qty: 1
                     }
                 ],
-                status: 'OPEN'
+                status: 'BORROWED'
             });
             await loan.save();
         });

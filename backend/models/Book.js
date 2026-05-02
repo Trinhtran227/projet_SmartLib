@@ -68,7 +68,7 @@ const bookSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0,
-        default: 100000 // Default price in VND
+        default: 20 // Default price in EUR
     },
     location: {
         type: String,
@@ -88,7 +88,6 @@ const bookSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-bookSchema.index({ isbn: 1 });
 bookSchema.index({ title: 'text', authors: 'text', keywords: 'text' });
 bookSchema.index({ categoryId: 1 });
 bookSchema.index({ publisherId: 1 });

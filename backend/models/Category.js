@@ -27,7 +27,4 @@ categorySchema.pre('save', function (next) {
     next();
 });
 
-// Index for better performance
-categorySchema.index({ slug: 1 });
-
 module.exports = mongoose.model('Category', categorySchema);

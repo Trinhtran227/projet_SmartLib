@@ -2,6 +2,14 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { ApiResponse, AuthResponse, Book, BookFilters, Category, Publisher, Faculty, Department, Loan, LoanFilters, User } from '../types';
 import { defaultApiBaseUrl } from './mediaUrl';
 
+type LoanQueryParams = {
+    page?: number;
+    limit?: number;
+    status?: string;
+    readerUserId?: string;
+    overdueOnly?: boolean;
+};
+
 class ApiClient {
     private client: AxiosInstance;
 
@@ -118,9 +126,21 @@ class ApiClient {
     }
 
     // Loan Management endpoints
-    async getPendingLoans(page = 1, limit = 10, status = 'PENDING'): Promise<{ data: any[]; meta: any }> {
-        const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/loans/admin/pending', {
-            params: { page, limit, status }
+    async getLoans(params: LoanQueryParams = {}) {
+        const response = await this.client.get('/loans', { params });
+        return {
+            data: response.data.data,
+            meta: response.data.meta
+        };
+    }
+
+    getPendingLoans(page = 1, limit = 10) {
+        return this.getLoans({ page, limit, status: 'PENDING' });
+    }
+
+    async getOverdueLoans(page = 1, limit = 10): Promise<{ data: any[]; meta: any }> {
+        const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/loans/overdues', {
+            params: { page, limit }
         });
         return {
             data: response.data.data,
@@ -135,19 +155,6 @@ class ApiClient {
 
     async rejectLoan(loanId: string, reason?: string): Promise<any> {
         const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/loans/${loanId}/reject`, { reason });
-        return response.data.data;
-    }
-
-    async markAsBorrowed(loanId: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/loans/${loanId}/borrow`);
-        return response.data.data;
-    }
-
-    async returnBooks(loanId: string, returnedItems: any[], condition = 'GOOD'): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/loans/${loanId}/return`, {
-            returnedItems,
-            condition
-        });
         return response.data.data;
     }
 
@@ -184,7 +191,7 @@ class ApiClient {
     }
 
     async getFines(page = 1, limit = 10, status = 'PENDING'): Promise<{ data: any[]; meta: any }> {
-        const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/loans/fines', {
+        const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/fines', {
             params: { page, limit, status }
         });
         return {
@@ -194,12 +201,12 @@ class ApiClient {
     }
 
     async payFine(fineId: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/loans/fines/${fineId}/pay`);
+        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/fines/${fineId}/pay`);
         return response.data.data;
     }
 
     async waiveFine(fineId: string, reason?: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/loans/fines/${fineId}/waive`, {
+        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/fines/${fineId}/waive`, {
             reason
         });
         return response.data.data;
@@ -356,7 +363,7 @@ class ApiClient {
     }
 
     async updateProfile(profileData: { fullName?: string; email?: string }): Promise<{ user: User }> {
-        const response: AxiosResponse<ApiResponse<{ user: User }>> = await this.client.patch('/users/profile', profileData);
+        const response: AxiosResponse<ApiResponse<{ user: User }>> = await this.client.patch('/users/me', profileData);
         return response.data.data;
     }
 
@@ -621,4 +628,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-export default apiClient;

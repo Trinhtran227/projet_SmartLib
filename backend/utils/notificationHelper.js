@@ -265,15 +265,16 @@ const notifyReviewShown = async (reviewId) => {
 };
 
 // Payment-related notifications
-const notifyPaymentReceived = async (userId, amount, paymentMethod = 'Virement bancaire') => {
+const notifyPaymentReceived = async (userId, amount, paymentMethod = 'Virement bancaire', currency = 'EUR') => {
     try {
         await createNotification(
             userId,
             'PAYMENT_RECEIVED',
             'Paiement réussi',
-            `Le paiement de la pénalité de ${amount.toLocaleString('vi-VN')} VNĐ a été traité avec succès. Merci !`,
+            `Le paiement de la pénalité de ${amount.toLocaleString('fr-FR')} ${currency} a été traité avec succès. Merci !`,
             {
                 amount,
+                currency,
                 paymentMethod,
                 transactionId: 'TXN' + Date.now(),
                 receivedAt: new Date()
@@ -399,7 +400,7 @@ const notifyFineIssued = async (fineId) => {
             fine.userId._id,
             'FINE_ISSUED',
             'Nouvelle pénalité',
-            `Vous avez une nouvelle pénalité : ${fineTypeLabels[fine.type] || fine.type} - ${fine.amount.toLocaleString('vi-VN')} ${fine.currency}`,
+            `Vous avez une nouvelle pénalité : ${fineTypeLabels[fine.type] || fine.type} - ${fine.amount.toLocaleString('fr-FR')} ${fine.currency}`,
             {
                 fineId: fine._id,
                 loanId: fine.loanId?._id,
@@ -425,7 +426,7 @@ const notifyFinePaid = async (fineId) => {
             fine.userId._id,
             'FINE_PAID',
             'Pénalité payée',
-            `La pénalité de ${fine.amount.toLocaleString('vi-VN')} ${fine.currency} a été payée avec succès.`,
+            `La pénalité de ${fine.amount.toLocaleString('fr-FR')} ${fine.currency} a été payée avec succès.`,
             {
                 fineId: fine._id,
                 amount: fine.amount,
@@ -449,7 +450,7 @@ const notifyFineWaived = async (fineId, reason = 'Pénalité annulée') => {
             fine.userId._id,
             'FINE_WAIVED',
             'Pénalité annulée',
-            `La pénalité de ${fine.amount.toLocaleString('vi-VN')} ${fine.currency} a été annulée. Raison : ${reason}`,
+            `La pénalité de ${fine.amount.toLocaleString('fr-FR')} ${fine.currency} a été annulée. Raison : ${reason}`,
             {
                 fineId: fine._id,
                 amount: fine.amount,
@@ -474,7 +475,7 @@ const notifyFineOverdue = async (fineId) => {
             fine.userId._id,
             'FINE_OVERDUE',
             'Pénalité en retard de paiement',
-            `Le paiement de la pénalité de ${fine.amount.toLocaleString('vi-VN')} ${fine.currency} est en retard. Veuillez payer rapidement.`,
+            `Le paiement de la pénalité de ${fine.amount.toLocaleString('fr-FR')} ${fine.currency} est en retard. Veuillez payer rapidement.`,
             {
                 fineId: fine._id,
                 amount: fine.amount,

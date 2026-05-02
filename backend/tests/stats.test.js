@@ -104,14 +104,14 @@ describe('Statistics API Endpoints', () => {
                 createdByRole: 'USER',
                 dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 items: [{ bookId: book._id, qty: 1 }],
-                status: 'OPEN'
+                status: 'BORROWED'
             },
             {
                 readerUserId: user._id,
                 createdByRole: 'USER',
                 dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
                 items: [{ bookId: book._id, qty: 2 }],
-                status: 'CLOSED'
+                status: 'RETURNED'
             }
         ]);
     });
@@ -126,7 +126,7 @@ describe('Statistics API Endpoints', () => {
             expect(response.body.success).toBe(true);
             expect(response.body.data).toHaveProperty('totalBooks');
             expect(response.body.data).toHaveProperty('totalUsers');
-            expect(response.body.data).toHaveProperty('totalLoans');
+            expect(response.body.data).toHaveProperty('totalBorrowed');
             expect(response.body.data).toHaveProperty('activeLoans');
         });
 
@@ -169,10 +169,10 @@ describe('Statistics API Endpoints', () => {
         });
     });
 
-    describe('GET /api/stats/monthly-borrows', () => {
+    describe('GET /api/stats/borrows-monthly', () => {
         it('should get monthly borrows as admin', async () => {
             const response = await request(app)
-                .get('/api/stats/monthly-borrows')
+                .get('/api/stats/borrows-monthly')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
@@ -183,7 +183,7 @@ describe('Statistics API Endpoints', () => {
         it('should get monthly borrows with year parameter', async () => {
             const currentYear = new Date().getFullYear();
             const response = await request(app)
-                .get(`/api/stats/monthly-borrows?year=${currentYear}`)
+                .get(`/api/stats/borrows-monthly?year=${currentYear}`)
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
@@ -193,7 +193,7 @@ describe('Statistics API Endpoints', () => {
 
         it('should not get monthly borrows as regular user', async () => {
             const response = await request(app)
-                .get('/api/stats/monthly-borrows')
+                .get('/api/stats/borrows-monthly')
                 .set('Authorization', `Bearer ${authToken}`)
                 .expect(403);
 
@@ -201,55 +201,4 @@ describe('Statistics API Endpoints', () => {
         });
     });
 
-    describe('GET /api/stats/popular-books', () => {
-        it('should get popular books as admin', async () => {
-            const response = await request(app)
-                .get('/api/stats/popular-books')
-                .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
-
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toBeInstanceOf(Array);
-        });
-
-        it('should get popular books with limit parameter', async () => {
-            const response = await request(app)
-                .get('/api/stats/popular-books?limit=5')
-                .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
-
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toBeInstanceOf(Array);
-        });
-
-        it('should not get popular books as regular user', async () => {
-            const response = await request(app)
-                .get('/api/stats/popular-books')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(403);
-
-            expect(response.body.success).toBe(false);
-        });
-    });
-
-    describe('GET /api/stats/overdue-loans', () => {
-        it('should get overdue loans as admin', async () => {
-            const response = await request(app)
-                .get('/api/stats/overdue-loans')
-                .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
-
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toBeInstanceOf(Array);
-        });
-
-        it('should not get overdue loans as regular user', async () => {
-            const response = await request(app)
-                .get('/api/stats/overdue-loans')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(403);
-
-            expect(response.body.success).toBe(false);
-        });
-    });
 });

@@ -98,7 +98,7 @@ describe('Overdues API Endpoints', () => {
         });
     });
 
-    describe('GET /api/overdues', () => {
+    describe('GET /api/loans/overdues', () => {
         it('should get overdue loans as admin', async () => {
             // Create overdue loan (due date in the past)
             await Loan.create({
@@ -111,11 +111,11 @@ describe('Overdues API Endpoints', () => {
                         qty: 1
                     }
                 ],
-                status: 'OPEN'
+                status: 'BORROWED'
             });
 
             const response = await request(app)
-                .get('/api/overdues')
+                .get('/api/loans/overdues')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
@@ -137,13 +137,13 @@ describe('Overdues API Endpoints', () => {
                             qty: 1
                         }
                     ],
-                    status: 'OPEN'
+                    status: 'BORROWED'
                 });
             }
             await Loan.create(overdueLoans);
 
             const response = await request(app)
-                .get('/api/overdues?page=1&limit=10')
+                .get('/api/loans/overdues?page=1&limit=10')
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
@@ -154,7 +154,7 @@ describe('Overdues API Endpoints', () => {
 
         it('should not get overdue loans as regular user', async () => {
             const response = await request(app)
-                .get('/api/overdues')
+                .get('/api/loans/overdues')
                 .set('Authorization', `Bearer ${authToken}`)
                 .expect(403);
 
@@ -163,7 +163,7 @@ describe('Overdues API Endpoints', () => {
 
         it('should not get overdue loans without authentication', async () => {
             const response = await request(app)
-                .get('/api/overdues')
+                .get('/api/loans/overdues')
                 .expect(401);
 
             expect(response.body.success).toBe(false);

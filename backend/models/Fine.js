@@ -23,7 +23,7 @@ const fineSchema = new mongoose.Schema({
     },
     currency: {
         type: String,
-        default: 'VND',
+        default: 'EUR',
         uppercase: true
     },
     description: {
