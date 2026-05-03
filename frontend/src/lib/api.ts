@@ -2,10 +2,12 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { ApiResponse, AuthResponse, Book, BookFilters, Category, Publisher, Faculty, Department, Loan, LoanFilters, User } from '../types';
 import { defaultApiBaseUrl } from './mediaUrl';
 
+type LoanStatus = 'PENDING' | 'BORROWED' | 'RETURNED' | 'CANCELLED' | 'PARTIAL_RETURN';
+
 type LoanQueryParams = {
     page?: number;
     limit?: number;
-    status?: string;
+    status?: LoanStatus;
     readerUserId?: string;
     overdueOnly?: boolean;
 };
@@ -135,7 +137,11 @@ class ApiClient {
     }
 
     getPendingLoans(page = 1, limit = 10) {
-        return this.getLoans({ page, limit, status: 'PENDING' });
+        return this.getLoans({ status: 'PENDING', page, limit });
+    }
+
+    getBorrowedLoans(page = 1, limit = 10) {
+        return this.getLoans({ status: 'BORROWED', page, limit });
     }
 
     async getOverdueLoans(page = 1, limit = 10): Promise<{ data: any[]; meta: any }> {

@@ -1,12 +1,8 @@
 const express = require('express');
 const Loan = require('../models/Loan');
-const Fine = require('../models/Fine');
 const LoanExtension = require('../models/LoanExtension');
-const FinePolicy = require('../models/FinePolicy');
 const { authenticate, authorize } = require('../middleware/auth');
 const { commonValidations, handleValidationErrors } = require('../middleware/validation');
-const { notifyLoanApproved, notifyLoanRejected, notifyFineIssued, notifyFinePaid, notifyFineWaived } = require('../utils/notificationHelper');
-
 const router = express.Router();
 
 // POST /api/loans/:id/extend - Request loan extension

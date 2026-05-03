@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     User,
     Mail,
     Calendar,
-    BookOpen,
     Settings,
-    Save,
     Edit3,
     Check,
     X,
     Lock,
-    Bell,
     Eye,
     EyeOff,
-    Upload,
-    AlertCircle
+    Upload
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';

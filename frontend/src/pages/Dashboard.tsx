@@ -18,7 +18,7 @@ import { apiClient } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -50,10 +50,10 @@ ChartJS.register(
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const queryClient = useQueryClient();
+    useQueryClient();
     const [selectedPeriod, setSelectedPeriod] = useState('7d');
     const [selectedChart, setSelectedChart] = useState('loans');
-    const [systemStatus, setSystemStatus] = useState({
+    const [, setSystemStatus] = useState({
         database: 'online',
         api: 'online',
         storage: 'online',
@@ -69,83 +69,21 @@ const Dashboard: React.FC = () => {
     });
 
     // Summary stats with more detailed data
-    const { data: summaryStats, isLoading: isLoadingSummaryStats } = useQuery({
+    const { data: summaryStats} = useQuery({
         queryKey: ['summary-stats'],
         queryFn: () => apiClient.getSummaryStats(),
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
-    // Recent loans for activity feed
-    const { data: recentLoans, isLoading: isLoadingLoans } = useQuery({
-        queryKey: ['recent-loans'],
-        queryFn: () => apiClient.getUserLoans({ limit: 5 }),
-    });
-
-    // Recent activity with more details (mock data for now)
-    const { data: recentActivity, isLoading: isLoadingRecentActivity } = useQuery({
-        queryKey: ['recent-activity'],
-        queryFn: async () => {
-            try {
-                return await apiClient.getRecentActivities(10);
-            } catch (error) {
-                // Return mock data if API fails
-                return [
-                    {
-                        _id: '1',
-                        title: 'Démarrage du système',
-                        description: 'La bibliothèque est prête',
-                        type: 'system',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        _id: '2',
-                        title: 'Mise à jour des données',
-                        description: 'Synchronisation des données réussie',
-                        type: 'update',
-                        createdAt: new Date(Date.now() - 3600000).toISOString()
-                    }
-                ];
-            }
-        },
-        enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
-    });
-
-    // System logs for additional activity data (mock data for now)
-    const { data: systemLogs, isLoading: isLoadingSystemLogs } = useQuery({
-        queryKey: ['system-logs'],
-        queryFn: async () => {
-            try {
-                return await apiClient.getSystemLogs(5);
-            } catch (error) {
-                // Return mock data if API fails
-                return [
-                    {
-                        _id: '1',
-                        message: 'Database connection established',
-                        level: 'info',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        _id: '2',
-                        message: 'User authentication successful',
-                        level: 'info',
-                        createdAt: new Date(Date.now() - 1800000).toISOString()
-                    }
-                ];
-            }
-        },
-        enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
-    });
-
     // Pending loans for quick actions
-    const { data: pendingLoans, isLoading: isLoadingPendingLoans } = useQuery({
+    const { data: pendingLoans} = useQuery({
         queryKey: ['pending-loans'],
         queryFn: () => apiClient.getPendingLoans(1, 5),
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
     // Overdue loans
-    const { data: overdueLoans, isLoading: isLoadingOverdueLoans } = useQuery({
+    const { data: overdueLoans} = useQuery({
         queryKey: ['overdue-loans'],
         queryFn: () => apiClient.getOverdueLoans(1, 5),
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
@@ -192,7 +130,7 @@ const Dashboard: React.FC = () => {
     });
 
     // System health (mock data for now)
-    const { data: systemHealth, isLoading: isLoadingSystemHealth } = useQuery({
+    const { data: systemHealth} = useQuery({
         queryKey: ['system-health'],
         queryFn: async () => {
             try {
@@ -213,7 +151,7 @@ const Dashboard: React.FC = () => {
     });
 
     // Previous month stats for comparison (mock data for now)
-    const { data: previousMonthStats, isLoading: isLoadingPreviousMonth } = useQuery({
+    const { data: previousMonthStats} = useQuery({
         queryKey: ['previous-month-stats'],
         queryFn: async () => {
             try {

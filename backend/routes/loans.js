@@ -1,8 +1,6 @@
 const express = require('express');
-const { body } = require('express-validator');
 const Loan = require('../models/Loan');
 const Book = require('../models/Book');
-const User = require('../models/User');
 const Fine = require('../models/Fine');
 const FinePolicy = require('../models/FinePolicy');
 const { authenticate, authorize } = require('../middleware/auth');
@@ -218,7 +216,7 @@ router.post('/self', authenticate, authorize('USER'), loanValidations.createForU
                 return res.status(400).json({
                     success: false,
                     error: {
-                        code: 'STOCK_409',
+                        code: 'STOCK_400',
                         message: `Book ${item.bookId} not found`
                     }
                 });
@@ -228,7 +226,7 @@ router.post('/self', authenticate, authorize('USER'), loanValidations.createForU
                 return res.status(400).json({
                     success: false,
                     error: {
-                        code: 'STOCK_409',
+                        code: 'STOCK_400',
                         message: `Book ${book.title} is not available`
                     }
                 });
@@ -238,7 +236,7 @@ router.post('/self', authenticate, authorize('USER'), loanValidations.createForU
                 return res.status(400).json({
                     success: false,
                     error: {
-                        code: 'STOCK_409',
+                        code: 'STOCK_400',
                         message: `Insufficient stock for book ${book.title}. Available: ${book.quantityAvailable}, Requested: ${item.qty}`
                     }
                 });
@@ -313,7 +311,7 @@ router.put('/:id/approve', [
             });
         }
 
-        // 2. Prevent double approval
+        // 2. Ensure loan is pending
         if (loan.status !== 'PENDING') {
             return res.status(400).json({
                 success: false,
@@ -324,7 +322,7 @@ router.put('/:id/approve', [
             });
         }
 
-        // 3. Load books
+        // 3. Load all books at once
         const bookIds = loan.items.map(i => i.bookId);
 
         const books = await Book.find({
@@ -335,7 +333,7 @@ router.put('/:id/approve', [
             books.map(b => [b._id.toString(), b])
         );
 
-        // 4. Validate stock BEFORE updating
+        // 4. Validate stock availability (in-memory check)
         for (const item of loan.items) {
             const book = bookMap.get(item.bookId.toString());
 
@@ -343,8 +341,9 @@ router.put('/:id/approve', [
                 return res.status(400).json({
                     success: false,
                     error: {
-                        code: 'NOT_FOUND_404',
-                        message: 'Book not found' }
+                        code: 'BOOK_NOT_FOUND_400',
+                        message: 'One or more books not found'
+                    }
                 });
             }
 
@@ -353,18 +352,20 @@ router.put('/:id/approve', [
                     success: false,
                     error: {
                         code: 'INSUFFICIENT_STOCK_400',
-                        message: `Insufficient stock for book: ${book?.title || 'Unknown'}`
+                        message: `Insufficient stock for: ${book.title}`
                     }
                 });
             }
         }
 
-        // 5. Update stock safely
+        // 5. Deduct stock safely (with rollback buffer)
+        const updatedItems = [];
+
         for (const item of loan.items) {
             const updated = await Book.findOneAndUpdate(
                 {
                     _id: item.bookId,
-                    quantityAvailable: { $gte: item.qty } // safety check
+                    quantityAvailable: { $gte: item.qty }
                 },
                 {
                     $inc: { quantityAvailable: -item.qty }
@@ -373,14 +374,23 @@ router.put('/:id/approve', [
             );
 
             if (!updated) {
+                // rollback previous updates
+                for (const u of updatedItems) {
+                    await Book.findByIdAndUpdate(u.bookId, {
+                        $inc: { quantityAvailable: u.qty }
+                    });
+                }
+
                 return res.status(400).json({
                     success: false,
                     error: {
-                        code: 'STOCK_CONFLICT',
-                        message: 'Stock conflict detected'
+                        code: 'STOCK_CONFLICT_400',
+                        message: 'Stock conflict occurred. Operation rolled back.'
                     }
                 });
             }
+
+            updatedItems.push(item);
         }
 
         // 6. Update loan
@@ -391,13 +401,16 @@ router.put('/:id/approve', [
 
         await loan.save();
 
-        // 7. Notification (safe failure isolation)
-        try {
-            await notifyLoanApproved(loan._id);
-        } catch (err) {
-            console.warn("Notification failed but loan is valid:", err.message);
-        }
+        // 7. Notification
+        notifyLoanApproved(loan._id)
+            .catch(err => {
+                console.warn(
+                    "Notification failed but loan is valid:",
+                    err.message
+                );
+            });
 
+        // 8. Response
         return res.json({
             success: true,
             message: 'Loan approved successfully',
@@ -406,7 +419,8 @@ router.put('/:id/approve', [
 
     } catch (error) {
         console.error('Approve loan error:', error);
-        res.status(500).json({
+
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'SERVER_500',
@@ -416,7 +430,7 @@ router.put('/:id/approve', [
     }
 });
 
-// PUT /api/loans/:id/reject - Reject loan request
+/// PUT /api/loans/:id/reject - Reject loan request
 router.put('/:id/reject', [
     authenticate,
     authorize(['ADMIN', 'LIBRARIAN']),
@@ -427,7 +441,11 @@ router.put('/:id/reject', [
         const { id } = req.params;
         const { reason } = req.body;
 
+        console.log('Rejecting loan request:', id);
+
+        // 1. Get loan
         const loan = await Loan.findById(id);
+
         if (!loan) {
             return res.status(404).json({
                 success: false,
@@ -438,6 +456,7 @@ router.put('/:id/reject', [
             });
         }
 
+        // 2. Ensure loan is still pending
         if (loan.status !== 'PENDING') {
             return res.status(400).json({
                 success: false,
@@ -448,26 +467,37 @@ router.put('/:id/reject', [
             });
         }
 
+        // 3. Update loan
         loan.status = 'CANCELLED';
-        loan.librarianId = req.user.id;
+        loan.librarianId = req.user._id;
         if (reason) loan.notes = reason;
+
         await loan.save();
 
-        // Create notification for user
-        await notifyLoanRejected(loan._id, reason);
+        // 4. Notification
+        notifyLoanRejected(loan._id, reason)
+            .catch(err => {
+                console.warn(
+                    "Notification failed but loan is valid:",
+                    err.message
+                );
+            });
 
-        res.json({
+        // 5. Response
+        return res.json({
             success: true,
-            data: loan,
-            message: 'Loan rejected successfully'
+            message: 'Loan rejected successfully',
+            data: loan
         });
+
     } catch (error) {
         console.error('Reject loan error:', error);
-        res.status(500).json({
+
+        return res.status(500).json({
             success: false,
             error: {
                 code: 'SERVER_500',
-                message: 'Failed to reject loan'
+                message: error.message || 'Failed to reject loan'
             }
         });
     }
@@ -482,9 +512,13 @@ router.put('/:id/return', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const { returnedItems, condition = 'GOOD' } = req.body;
+        const { returnedItems = [] } = req.body;
 
+        console.log('Processing return for loan:', id);
+
+        // 1. Get loan
         const loan = await Loan.findById(id);
+
         if (!loan) {
             return res.status(404).json({
                 success: false,
@@ -495,43 +529,65 @@ router.put('/:id/return', [
             });
         }
 
+        // 2. Validate status
         if (!['BORROWED', 'PARTIAL_RETURN'].includes(loan.status)) {
             return res.status(400).json({
                 success: false,
                 error: {
                     code: 'INVALID_STATUS_400',
-                    message: 'Loan is not in borrowed status'
+                    message: 'Loan is not in a returnable state'
                 }
             });
         }
 
-        // Update book quantities
+        // 3. Basic validation of input
+        if (!Array.isArray(returnedItems) || returnedItems.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_INPUT_400',
+                    message: 'Returned items are required'
+                }
+            });
+        }
+
+        // 4. Load fine policy once
+        const policy = await FinePolicy.getCurrent();
+
+        // 5. Restore stock (simple + safe per-item update)
         for (const item of returnedItems) {
-            const book = await Book.findById(item.bookId);
-            if (book) {
-                await Book.findByIdAndUpdate(
-                    item.bookId,
-                    { $inc: { quantityAvailable: item.qty } }
-                );
-            }
+            if (!item.bookId || !item.qty) continue;
+
+            await Book.findByIdAndUpdate(item.bookId, {
+                $inc: { quantityAvailable: item.qty }
+            });
         }
 
-        // Check if all items are returned
-        const totalReturned = returnedItems.reduce((sum, item) => sum + item.qty, 0);
-        const totalItems = loan.items.reduce((sum, item) => sum + item.qty, 0);
+        // 6. Compute return status (simple & stable for demo)
+        const totalReturned = returnedItems.reduce(
+            (sum, item) => sum + (item.qty || 0),
+            0
+        );
 
-        if (totalReturned >= totalItems) {
-            loan.status = 'RETURNED';
-        } else {
-            loan.status = 'PARTIAL_RETURN';
-        }
+        const totalBorrowed = loan.items.reduce(
+            (sum, item) => sum + item.qty,
+            0
+        );
+
+        loan.status = totalReturned >= totalBorrowed
+            ? 'RETURNED'
+            : 'PARTIAL_RETURN';
+
+        loan.returnDate = new Date();
 
         await loan.save();
 
-        // Check for fines if overdue
+        // 7. Late return fine (if overdue)
         if (new Date() > loan.dueDate) {
-            const policy = await FinePolicy.getCurrent();
-            const overdueDays = Math.ceil((new Date() - loan.dueDate) / (1000 * 60 * 60 * 24));
+            const overdueDays = Math.ceil(
+                (new Date() - loan.dueDate) / (1000 * 60 * 60 * 24)
+            );
+
             const fineAmount = overdueDays * policy.lateFeePerDay;
 
             await Fine.create({
@@ -540,35 +596,22 @@ router.put('/:id/return', [
                 type: 'LATE_RETURN',
                 amount: fineAmount,
                 currency: policy.currency,
-                description: `Late return fine for ${overdueDays} days`
+                description: `Late return fine: ${overdueDays} day(s)`
             });
         }
 
-        // Check for damage/lost book fines
-        const policy = await FinePolicy.getCurrent();
-        console.log('Fine policy:', policy);
-
+        // 8. Damage / loss fines
         for (const item of returnedItems) {
-            console.log('Processing item:', item);
+            const book = await Book.findById(item.bookId);
+            if (!book) continue;
 
+            // DAMAGE
             if (item.condition === 'DAMAGED' && item.damageLevel > 0) {
-                // Get book price (assuming book has a price field)
-                const book = await Book.findById(item.bookId);
-                console.log('Book for damage fine:', book);
-
-                if (!book) {
-                    console.warn(`Book ${item.bookId} not found for damage fine calculation`);
-                    continue;
-                }
-
-                if (!book.price || book.price <= 0) {
-                    console.warn(`Book ${book.title} has no valid price for damage fine calculation`);
-                    continue;
-                }
-
-                const damagePercentage = item.damageLevel / 100;
-                const fineAmount = Math.round(book.price * policy.damageFeeRate * damagePercentage);
-                console.log('Creating damage fine:', fineAmount);
+                const fineAmount = Math.round(
+                    book.price *
+                    policy.damageFeeRate *
+                    (item.damageLevel / 100)
+                );
 
                 const fine = await Fine.create({
                     loanId: loan._id,
@@ -576,29 +619,19 @@ router.put('/:id/return', [
                     type: 'DAMAGE',
                     amount: fineAmount,
                     currency: policy.currency,
-                    description: `Book damage fine: ${item.damageLevel}% damage - ${book.title} (${fineAmount.toLocaleString('fr-FR')} ${policy.currency})`
+                    description: `Damage fine - ${book.title}`
                 });
-                console.log('Damage fine created:', fine);
 
-                // Send notification to user
-                await notifyFineIssued(fine._id);
-            } else if (item.condition === 'LOST') {
-                // Get book price for lost book
-                const book = await Book.findById(item.bookId);
-                console.log('Book for lost fine:', book);
+                notifyFineIssued(fine._id).catch(err =>
+                    console.warn("Fine notification failed:", err.message)
+                );
+            }
 
-                if (!book) {
-                    console.warn(`Book ${item.bookId} not found for lost book fine calculation`);
-                    continue;
-                }
-
-                if (!book.price || book.price <= 0) {
-                    console.warn(`Book ${book.title} has no valid price for lost book fine calculation`);
-                    continue;
-                }
-
-                const fineAmount = Math.round(book.price * policy.lostBookFeeRate);
-                console.log('Creating lost book fine:', fineAmount);
+            // LOST
+            if (item.condition === 'LOST') {
+                const fineAmount = Math.round(
+                    book.price * policy.lostBookFeeRate
+                );
 
                 const fine = await Fine.create({
                     loanId: loan._id,
@@ -606,27 +639,30 @@ router.put('/:id/return', [
                     type: 'LOSS',
                     amount: fineAmount,
                     currency: policy.currency,
-                    description: `Lost book fine: ${book.title} (${fineAmount.toLocaleString('fr-FR')} ${policy.currency})`
+                    description: `Lost book fine - ${book.title}`
                 });
-                console.log('Lost book fine created:', fine);
 
-                // Send notification to user
-                await notifyFineIssued(fine._id);
+                notifyFineIssued(fine._id).catch(err =>
+                    console.warn("Fine notification failed:", err.message)
+                );
             }
         }
 
-        res.json({
+        // 9. Response
+        return res.json({
             success: true,
-            data: loan,
-            message: 'Books returned successfully'
+            message: 'Books returned successfully',
+            data: loan
         });
+
     } catch (error) {
         console.error('Return books error:', error);
-        res.status(500).json({
+
+        return res.status(500).json({
             success: false,
             error: {
-                code: 'SERVER_500',
-                message: 'Failed to return books'
+                code: 'SERVER_ERROR_500',
+                message: error.message || 'Failed to process return'
             }
         });
     }

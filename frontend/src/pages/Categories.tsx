@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Search, Grid, List, BookOpen, TrendingUp, Star, Users } from 'lucide-react';
+import { ArrowLeft, Search, Grid, List, BookOpen, TrendingUp, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
 import { getCategoryDisplayName } from '../lib/categoryLabels';
 
 const Categories: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
         const saved = localStorage.getItem('categories-view-mode');

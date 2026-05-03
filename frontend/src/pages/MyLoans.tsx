@@ -4,12 +4,8 @@ import {
     BookOpen,
     Calendar,
     Clock,
-    CheckCircle,
     AlertCircle,
-    Eye,
     Download,
-    Plus,
-    XCircle,
     RefreshCw
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Modal from '../components/ui/Modal';
-import { format, isAfter, isBefore, differenceInDays } from 'date-fns';
+import { format, isAfter, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 

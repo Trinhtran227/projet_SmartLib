@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { body } = require('express-validator');
 const Book = require('../models/Book');
 const Publisher = require('../models/Publisher');
 const Faculty = require('../models/Faculty');

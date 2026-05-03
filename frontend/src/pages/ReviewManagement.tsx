@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Star,
-    ThumbsUp,
-    ThumbsDown,
-    Filter,
     Search,
-    MoreVertical,
     CheckCircle,
     XCircle,
     Eye,

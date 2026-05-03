@@ -11,15 +11,10 @@ import {
     Save,
     X,
     Tag,
-    Calendar,
-    User,
-    DollarSign,
     Hash,
-    Building,
     FileText,
     RefreshCw,
     ChevronLeft,
-    ChevronRight
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
@@ -181,7 +176,7 @@ const BookManagement: React.FC = () => {
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
-    const { data: publishers, isLoading: isLoadingPublishers } = useQuery({
+    const { data: publishers} = useQuery({
         queryKey: ['publishers-management'],
         queryFn: async () => {
             console.log('Fetching publishers...');
@@ -192,7 +187,7 @@ const BookManagement: React.FC = () => {
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
-    const { data: faculties, isLoading: isLoadingFaculties } = useQuery({
+    const { data: faculties} = useQuery({
         queryKey: ['faculties-management'],
         queryFn: async () => {
             console.log('Fetching faculties...');
@@ -203,7 +198,7 @@ const BookManagement: React.FC = () => {
         enabled: user?.role === 'ADMIN' || user?.role === 'LIBRARIAN'
     });
 
-    const { data: departments, isLoading: isLoadingDepartments } = useQuery({
+    const { data: departments} = useQuery({
         queryKey: ['departments-management', bookForm.faculty],
         queryFn: async () => {
             if (!bookForm.faculty) return [];

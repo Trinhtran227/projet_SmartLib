@@ -54,7 +54,7 @@ const LoanManagement: React.FC = () => {
     // Fetch borrowed loans
     const { data: borrowedLoans, isLoading: isLoadingBorrowed, refetch: refetchBorrowed } = useQuery({
         queryKey: ['borrowed-loans'],
-        queryFn: () => apiClient.getPendingLoans(1, 20),
+        queryFn: () => apiClient.getBorrowedLoans(1, 20),
         enabled: !!(user && (user.role === 'ADMIN' || user.role === 'LIBRARIAN'))
     });
 
@@ -130,7 +130,7 @@ const LoanManagement: React.FC = () => {
             setShowLoanModal(false);
             setSelectedLoan(null);
             setActionNotes('');
-            refetchLoans();
+            await refetchLoans();
         } catch (error: any) {
             console.error('Approve loan error:', error);
             console.error('Error response:', error.response?.data);

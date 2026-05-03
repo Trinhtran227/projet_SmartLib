@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import {
     Users,
     Search,
-    Filter,
     Plus,
     Edit,
     Trash2,
@@ -32,7 +31,7 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 
 const UserManagement: React.FC = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    useNavigate();
     const queryClient = useQueryClient();
 
     // State management

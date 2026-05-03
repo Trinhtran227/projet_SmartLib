@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, TrendingUp, Star, ArrowRight, Sparkles, Users, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

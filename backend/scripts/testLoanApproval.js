@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Loan = require('../models/Loan');
 const Book = require('../models/Book');
-const User = require('../models/User');
 
 async function testLoanApproval() {
     try {

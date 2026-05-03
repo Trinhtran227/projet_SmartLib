@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Check, Trash2, Clock, BookOpen, DollarSign, Eye, EyeOff, AlertCircle, Filter, Search } from 'lucide-react';
+import { Bell, Check, Trash2, Clock, BookOpen, DollarSign, Eye, EyeOff, AlertCircle, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';

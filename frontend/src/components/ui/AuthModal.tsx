@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 import Modal from './Modal';
 import Button from './Button';
 import Input from './Input';

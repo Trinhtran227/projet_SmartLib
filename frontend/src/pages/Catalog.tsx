@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, X, Grid, List, SortAsc, SortDesc, ChevronDown, Star, Clock, TrendingUp, BookOpen, Eye, Heart, Bookmark, Share2, RefreshCw } from 'lucide-react';
+import { Search, Filter, X, Grid, List, SortAsc, SortDesc, ChevronDown, Star, Clock, TrendingUp, BookOpen, Eye, Heart, Share2, RefreshCw } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';

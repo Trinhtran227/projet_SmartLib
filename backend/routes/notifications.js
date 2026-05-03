@@ -1,13 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { body, query, param } = require('express-validator');
+const { query, param } = require('express-validator');
 const { authenticate, authorize } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/validation');
 const Notification = require('../models/Notification');
-const User = require('../models/User');
-const Book = require('../models/Book');
-const Loan = require('../models/Loan');
-const Review = require('../models/Review');
 
 // Get user notifications
 router.get('/', authenticate, [

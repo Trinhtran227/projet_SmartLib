@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, ArrowLeft, Search, Filter, Grid, List, Star } from 'lucide-react';
+import { Heart, ArrowLeft, Search, Grid, List } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api';

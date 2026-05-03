@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -17,16 +17,9 @@ import {
     MessageCircle,
     ThumbsUp,
     Eye,
-    Clock,
     MapPin,
     Tag,
-    Filter,
-    Search,
-    BookMarked,
     TrendingUp,
-    Award,
-    Users,
-    Download,
     ExternalLink
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';

@@ -2,7 +2,6 @@ const express = require('express');
 const { body, query } = require('express-validator');
 const Review = require('../models/Review');
 const Book = require('../models/Book');
-const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
 const { handleValidationErrors } = require('../middleware/validation');
 const { notifyReviewHidden, notifyReviewShown } = require('../utils/notificationHelper');
