@@ -28,7 +28,7 @@ mongod --version
 **Configuration automatique :**
 ```cmd
 git clone <repository-url>
-cd QuanLyThuVien
+cd projet_smartlib
 setup.bat
 ```
 
@@ -62,7 +62,7 @@ dev.bat status  # Vérifier l'état
 **Configuration automatique :**
 ```bash
 git clone <repository-url>
-cd QuanLyThuVien
+cd projet_smartlib
 ./setup.sh
 ```
 
@@ -96,7 +96,7 @@ cd QuanLyThuVien
 ### Étape 1 : Cloner le Dépôt
 ```bash
 git clone <repository-url>
-cd QuanLyThuVien
+cd projet_smartlib
 ```
 
 ### Étape 2 : Installer le Backend
@@ -273,7 +273,7 @@ node scripts/testNewBookNotification.js
 ## 📁 Structure du Projet
 
 ```
-QuanLyThuVien/
+projet_smartlib/
 ├── backend/                 # API Backend
 │   ├── models/             # Modèles de base de données
 │   ├── routes/             # Routes de l'API

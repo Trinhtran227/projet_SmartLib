@@ -341,20 +341,6 @@ class ApiClient {
         return response.data.data;
     }
 
-    async getRecentActivities(limit = 10): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/activities/recent', {
-            params: { limit }
-        });
-        return response.data.data;
-    }
-
-    async getSystemLogs(limit = 10): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/system/logs', {
-            params: { limit }
-        });
-        return response.data.data;
-    }
-
     async updateProfile(profileData: { fullName?: string; email?: string }): Promise<{ user: User }> {
         const response: AxiosResponse<ApiResponse<{ user: User }>> = await this.client.patch('/users/me', profileData);
         return response.data.data;

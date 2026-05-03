@@ -42,12 +42,6 @@ const createSampleNotifications = async () => {
             return;
         }
 
-        // Get some loans
-        const loans = await Loan.find().limit(3);
-
-        // Get some reviews
-        const reviews = await Review.find().limit(3);
-
         const notifications = [];
 
         // Create different types of notifications for each user
