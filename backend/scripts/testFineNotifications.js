@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Fine = require('../models/Fine');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const Loan = require('../models/Loan');
 const { notifyFineIssued, notifyFinePaid, notifyFineWaived } = require('../utils/notificationHelper');
 
 async function testFineNotifications() {
@@ -10,7 +11,7 @@ async function testFineNotifications() {
         await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/library_management');
         console.log('✅ Connected to MongoDB');
 
-        // Find a user to test with
+        // Find user
         const user = await User.findOne({ role: 'USER' });
         if (!user) {
             console.log('❌ No user found for testing');
@@ -19,9 +20,17 @@ async function testFineNotifications() {
 
         console.log('👤 Testing with user:', user.fullName);
 
+        // Find loan
+        const loan = await Loan.findOne({ readerUserId: user._id });
+        if (!loan) {
+            console.log('❌ No loan found for testing');
+            return;
+        }
+
         // Create a test fine
         const testFine = new Fine({
             userId: user._id,
+            loanId: loan._id,
             type: 'DAMAGE',
             amount: 10,
             currency: 'EUR',

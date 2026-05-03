@@ -298,7 +298,7 @@ router.put('/:id/approve', [
 
         console.log('Starting loan approval process for loan:', id);
 
-        // 1. Get loan
+        // Get loan
         const loan = await Loan.findById(id);
 
         if (!loan) {
@@ -311,7 +311,7 @@ router.put('/:id/approve', [
             });
         }
 
-        // 2. Ensure loan is pending
+        // Ensure loan is pending
         if (loan.status !== 'PENDING') {
             return res.status(400).json({
                 success: false,
@@ -322,7 +322,7 @@ router.put('/:id/approve', [
             });
         }
 
-        // 3. Load all books at once
+        // Load all books at once
         const bookIds = loan.items.map(i => i.bookId);
 
         const books = await Book.find({
@@ -333,7 +333,7 @@ router.put('/:id/approve', [
             books.map(b => [b._id.toString(), b])
         );
 
-        // 4. Validate stock availability (in-memory check)
+        // Validate stock availability (in-memory check)
         for (const item of loan.items) {
             const book = bookMap.get(item.bookId.toString());
 
@@ -358,7 +358,7 @@ router.put('/:id/approve', [
             }
         }
 
-        // 5. Deduct stock safely (with rollback buffer)
+        // Deduct stock safely (with rollback buffer)
         const updatedItems = [];
 
         for (const item of loan.items) {
@@ -393,7 +393,7 @@ router.put('/:id/approve', [
             updatedItems.push(item);
         }
 
-        // 6. Update loan
+        //  Update loan
         loan.status = 'BORROWED';
         loan.loanDate = new Date();
         loan.librarianId = req.user._id;
@@ -401,7 +401,7 @@ router.put('/:id/approve', [
 
         await loan.save();
 
-        // 7. Notification
+        // Notification
         notifyLoanApproved(loan._id)
             .catch(err => {
                 console.warn(
@@ -410,7 +410,7 @@ router.put('/:id/approve', [
                 );
             });
 
-        // 8. Response
+        // Response
         return res.json({
             success: true,
             message: 'Loan approved successfully',
@@ -456,7 +456,7 @@ router.put('/:id/reject', [
             });
         }
 
-        // 2. Ensure loan is still pending
+        // Ensure loan is still pending
         if (loan.status !== 'PENDING') {
             return res.status(400).json({
                 success: false,
@@ -467,14 +467,14 @@ router.put('/:id/reject', [
             });
         }
 
-        // 3. Update loan
+        // Update loan
         loan.status = 'CANCELLED';
         loan.librarianId = req.user._id;
         if (reason) loan.notes = reason;
 
         await loan.save();
 
-        // 4. Notification
+        // Notification
         notifyLoanRejected(loan._id, reason)
             .catch(err => {
                 console.warn(
@@ -483,7 +483,7 @@ router.put('/:id/reject', [
                 );
             });
 
-        // 5. Response
+        // Response
         return res.json({
             success: true,
             message: 'Loan rejected successfully',
@@ -516,7 +516,7 @@ router.put('/:id/return', [
 
         console.log('Processing return for loan:', id);
 
-        // 1. Get loan
+        // Get loan
         const loan = await Loan.findById(id);
 
         if (!loan) {
@@ -529,7 +529,7 @@ router.put('/:id/return', [
             });
         }
 
-        // 2. Validate status
+        // Validate status
         if (!['BORROWED', 'PARTIAL_RETURN'].includes(loan.status)) {
             return res.status(400).json({
                 success: false,
@@ -540,7 +540,7 @@ router.put('/:id/return', [
             });
         }
 
-        // 3. Basic validation of input
+        // Basic validation of input
         if (!Array.isArray(returnedItems) || returnedItems.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -551,10 +551,10 @@ router.put('/:id/return', [
             });
         }
 
-        // 4. Load fine policy once
+        // Load fine policy once
         const policy = await FinePolicy.getCurrent();
 
-        // 5. Restore stock (simple + safe per-item update)
+        // Restore stock (simple + safe per-item update)
         for (const item of returnedItems) {
             if (!item.bookId || !item.qty) continue;
 
@@ -563,7 +563,7 @@ router.put('/:id/return', [
             });
         }
 
-        // 6. Compute return status (simple & stable for demo)
+        // Compute return status (simple & stable for demo)
         const totalReturned = returnedItems.reduce(
             (sum, item) => sum + (item.qty || 0),
             0
@@ -582,7 +582,7 @@ router.put('/:id/return', [
 
         await loan.save();
 
-        // 7. Late return fine (if overdue)
+        // Late return fine (if overdue)
         if (new Date() > loan.dueDate) {
             const overdueDays = Math.ceil(
                 (new Date() - loan.dueDate) / (1000 * 60 * 60 * 24)
@@ -600,7 +600,7 @@ router.put('/:id/return', [
             });
         }
 
-        // 8. Damage / loss fines
+        // Damage / loss fines
         for (const item of returnedItems) {
             const book = await Book.findById(item.bookId);
             if (!book) continue;
@@ -648,7 +648,7 @@ router.put('/:id/return', [
             }
         }
 
-        // 9. Response
+        // Response
         return res.json({
             success: true,
             message: 'Books returned successfully',
