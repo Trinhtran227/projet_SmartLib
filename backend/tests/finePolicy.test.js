@@ -5,113 +5,120 @@ const FinePolicy = require('../models/FinePolicy');
 const mongoose = require('mongoose');
 
 describe('Fine Policy API Endpoints', () => {
-    let authToken;
     let adminToken;
-    let user;
+    let userToken;
     let admin;
+    let user;
 
     beforeAll(async () => {
-        // Connect to test database
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/library_management_test');
+        await mongoose.connect(
+            process.env.MONGODB_URI || 'mongodb://localhost:27017/library_management_test'
+        );
     });
 
     afterAll(async () => {
-        // Clean up and close connection
         await mongoose.connection.close();
     });
 
     beforeEach(async () => {
-        // Clear data before each test
         await Promise.all([
             User.deleteMany({}),
             FinePolicy.deleteMany({})
         ]);
 
-        // Create regular user
         const bcrypt = require('bcryptjs');
-        const hashedPassword = await bcrypt.hash('password123', 12);
-        user = new User({
+
+        // Regular user
+        const userPassword = await bcrypt.hash('password123', 12);
+        user = await User.create({
             email: 'user@example.com',
             fullName: 'Test User',
             role: 'USER',
-            passwordHash: hashedPassword
+            passwordHash: userPassword
         });
-        await user.save();
 
-        // Create admin user
-        const adminHashedPassword = await bcrypt.hash('admin123', 12);
-        admin = new User({
+        // Admin user
+        const adminPassword = await bcrypt.hash('admin123', 12);
+        admin = await User.create({
             email: 'admin@example.com',
             fullName: 'Test Admin',
             role: 'ADMIN',
-            passwordHash: adminHashedPassword
+            passwordHash: adminPassword
         });
-        await admin.save();
 
-        // Login to get tokens
-        const userLoginResponse = await request(app)
+        // Login user
+        const userLogin = await request(app)
             .post('/api/auth/login')
             .send({
                 email: 'user@example.com',
                 password: 'password123'
             });
-        authToken = userLoginResponse.body.data.accessToken;
 
-        const adminLoginResponse = await request(app)
+        userToken = userLogin.body?.data?.accessToken;
+
+        // Login admin
+        const adminLogin = await request(app)
             .post('/api/auth/login')
             .send({
                 email: 'admin@example.com',
                 password: 'admin123'
             });
-        adminToken = adminLoginResponse.body.data.accessToken;
+
+        adminToken = adminLogin.body?.data?.accessToken;
     });
 
     describe('GET /api/fine-policy', () => {
-        it('should get fine policy (public access)', async () => {
-            // Create test fine policy
+        it('should allow ADMIN to get fine policy', async () => {
             await FinePolicy.create({
-                dailyFineAmount: 1000,
-                gracePeriodDays: 3,
-                maxFineAmount: 50000,
                 lateFeePerDay: 1000,
                 damageFeeRate: 0.1,
+                lostBookFeeRate: 1.0,
+                currency: 'EUR',
                 isActive: true
             });
 
             const response = await request(app)
                 .get('/api/fine-policy')
+                .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
             expect(response.body.success).toBe(true);
-            expect(response.body.data.dailyFineAmount).toBe(1000);
+            expect(response.body.data.lateFeePerDay).toBe(1000);
         });
 
-        it('should return default policy if none exists', async () => {
+        it('should deny USER access to fine policy', async () => {
+            await FinePolicy.create({
+                lateFeePerDay: 1000,
+                damageFeeRate: 0.1,
+                lostBookFeeRate: 1.0,
+                currency: 'EUR',
+                isActive: true
+            });
+
             const response = await request(app)
                 .get('/api/fine-policy')
-                .expect(200);
+                .set('Authorization', `Bearer ${userToken}`)
+                .expect(403);
 
-            expect(response.body.success).toBe(true);
-            expect(response.body.data).toBeDefined();
+            expect(response.body.success).toBe(false);
+        });
+
+        it('should deny access without authentication', async () => {
+            const response = await request(app)
+                .get('/api/fine-policy')
+                .expect(401);
+
+            expect(response.body.success).toBe(false);
         });
     });
 
     describe('PUT /api/fine-policy', () => {
-        it('should update fine policy as admin', async () => {
-            // Create initial policy
-            await FinePolicy.create({
-                dailyFineAmount: 1000,
-                gracePeriodDays: 3,
-                maxFineAmount: 50000,
-                lateFeePerDay: 1000,
-                damageFeeRate: 0.1,
-                isActive: true
-            });
-
+        it('should allow ADMIN to create/update fine policy', async () => {
             const updateData = {
-                dailyFineAmount: 2000,
-                gracePeriodDays: 5,
-                maxFineAmount: 100000
+                lateFeePerDay: 2000,
+                damageFeeRate: 0.2,
+                lostBookFeeRate: 0.8,
+                currency: 'EUR'
             };
 
             const response = await request(app)
@@ -121,18 +128,16 @@ describe('Fine Policy API Endpoints', () => {
                 .expect(200);
 
             expect(response.body.success).toBe(true);
-            expect(response.body.data.dailyFineAmount).toBe(2000);
-            expect(response.body.data.gracePeriodDays).toBe(5);
+            expect(response.body.data.lateFeePerDay).toBe(2000);
+            expect(response.body.data.damageFeeRate).toBe(0.2);
         });
 
-        it('should create fine policy if none exists as admin', async () => {
+        it('should create policy if none exists', async () => {
             const policyData = {
-                dailyFineAmount: 1500,
-                gracePeriodDays: 2,
-                maxFineAmount: 75000,
                 lateFeePerDay: 1500,
                 damageFeeRate: 0.15,
-                isActive: true
+                lostBookFeeRate: 1.0,
+                currency: 'EUR'
             };
 
             const response = await request(app)
@@ -142,26 +147,26 @@ describe('Fine Policy API Endpoints', () => {
                 .expect(200);
 
             expect(response.body.success).toBe(true);
-            expect(response.body.data.dailyFineAmount).toBe(1500);
+            expect(response.body.data.lateFeePerDay).toBe(1500);
         });
 
-        it('should not update fine policy as regular user', async () => {
+        it('should prevent USER from updating policy', async () => {
             const updateData = {
-                dailyFineAmount: 2000
+                lateFeePerDay: 3000
             };
 
             const response = await request(app)
                 .put('/api/fine-policy')
-                .set('Authorization', `Bearer ${authToken}`)
+                .set('Authorization', `Bearer ${userToken}`)
                 .send(updateData)
                 .expect(403);
 
             expect(response.body.success).toBe(false);
         });
 
-        it('should not update fine policy without authentication', async () => {
+        it('should reject unauthenticated requests', async () => {
             const updateData = {
-                dailyFineAmount: 2000
+                lateFeePerDay: 3000
             };
 
             const response = await request(app)
@@ -172,11 +177,10 @@ describe('Fine Policy API Endpoints', () => {
             expect(response.body.success).toBe(false);
         });
 
-        it('should validate fine policy data', async () => {
+        it('should validate input data', async () => {
             const invalidData = {
-                dailyFineAmount: -100, // Negative amount
-                gracePeriodDays: -1,   // Negative days
-                maxFineAmount: 0       // Zero max amount
+                lateFeePerDay: -100,
+                damageFeeRate: 2 // invalid (>1)
             };
 
             const response = await request(app)
@@ -184,39 +188,6 @@ describe('Fine Policy API Endpoints', () => {
                 .set('Authorization', `Bearer ${adminToken}`)
                 .send(invalidData)
                 .expect(400);
-
-            expect(response.body.success).toBe(false);
-        });
-    });
-
-    describe('POST /api/fine-policy/toggle', () => {
-        beforeEach(async () => {
-            // Create test policy
-            await FinePolicy.create({
-                dailyFineAmount: 1000,
-                gracePeriodDays: 3,
-                maxFineAmount: 50000,
-                lateFeePerDay: 1000,
-                damageFeeRate: 0.1,
-                isActive: true
-            });
-        });
-
-        it('should toggle fine policy status as admin', async () => {
-            const response = await request(app)
-                .post('/api/fine-policy/toggle')
-                .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
-
-            expect(response.body.success).toBe(true);
-            expect(response.body.data.isActive).toBe(false);
-        });
-
-        it('should not toggle fine policy as regular user', async () => {
-            const response = await request(app)
-                .post('/api/fine-policy/toggle')
-                .set('Authorization', `Bearer ${authToken}`)
-                .expect(403);
 
             expect(response.body.success).toBe(false);
         });

@@ -287,55 +287,6 @@ router.post('/self', authenticate, authorize('USER'), loanValidations.createForU
     }
 });
 
-// POST /api/loans/:id/print (LIBRARIAN/ADMIN only)
-router.post('/:id/print', authenticate, authorize('LIBRARIAN', 'ADMIN'), [
-    commonValidations.objectId('id'),
-    handleValidationErrors
-], async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const loan = await Loan.findById(id)
-            .populate('readerUserId', 'fullName email')
-            .populate('librarianId', 'fullName email')
-            .populate('items.bookId', 'title isbn authors');
-
-        if (!loan) {
-            return res.status(404).json({
-                success: false,
-                error: {
-                    code: 'NOT_FOUND_404',
-                    message: 'Loan not found'
-                }
-            });
-        }
-
-        // TODO: Implement PDF generation using puppeteer
-        // For now, return loan data for frontend to generate PDF
-        res.json({
-            success: true,
-            data: {
-                loan,
-                printData: {
-                    type: 'LOAN',
-                    title: 'Bordereau de prêt',
-                    generatedAt: new Date().toISOString(),
-                    generatedBy: req.user.fullName
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Print loan error:', error);
-        res.status(500).json({
-            success: false,
-            error: {
-                code: 'SERVER_500',
-                message: 'Failed to generate loan print'
-            }
-        });
-    }
-});
-
 // PUT /api/loans/:id/approve - Approve loan request
 router.put('/:id/approve', [
     authenticate,

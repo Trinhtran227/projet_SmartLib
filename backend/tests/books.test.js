@@ -156,6 +156,7 @@ describe('Books API Endpoints', () => {
                 publisherId: publisher._id.toString(),
                 quantityTotal: 3,
                 quantityAvailable: 3,
+                price: 10,
                 status: 'ACTIVE'
             };
 

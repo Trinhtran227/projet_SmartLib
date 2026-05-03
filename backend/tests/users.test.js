@@ -96,7 +96,8 @@ describe('Users API Endpoints', () => {
         it('should change user password', async () => {
             const passwordData = {
                 currentPassword: 'password123',
-                newPassword: 'newpassword123'
+                newPassword: 'newpassword123',
+                confirmPassword: 'newpassword123'
             };
 
             const response = await request(app)

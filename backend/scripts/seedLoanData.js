@@ -57,36 +57,6 @@ async function seedLoanData() {
             sampleLoans.push(loan);
         }
 
-        // APPROVED loans
-        for (let i = 0; i < 2; i++) {
-            const user = users[Math.floor(Math.random() * users.length)];
-            const bookCount = Math.floor(Math.random() * 2) + 1;
-            const selectedBooks = [];
-
-            for (let j = 0; j < bookCount; j++) {
-                const book = books[Math.floor(Math.random() * books.length)];
-                if (!selectedBooks.find(b => b.bookId.toString() === book._id.toString())) {
-                    selectedBooks.push({
-                        bookId: book._id,
-                        qty: 1
-                    });
-                }
-            }
-
-            const loan = new Loan({
-                readerUserId: user._id,
-                librarianId: users.find(u => u.role === 'LIBRARIAN')?._id || users[0]._id,
-                createdByRole: 'USER',
-                loanDate: new Date(),
-                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-                items: selectedBooks,
-                status: 'APPROVED',
-                notes: `Prêt modèle approuvé ${i + 1}`
-            });
-
-            sampleLoans.push(loan);
-        }
-
         // BORROWED loans
         for (let i = 0; i < 5; i++) {
             const user = users[Math.floor(Math.random() * users.length)];

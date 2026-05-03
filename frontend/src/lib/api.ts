@@ -259,11 +259,6 @@ class ApiClient {
         return response.data.data;
     }
 
-    async createPublisher(publisherData: any): Promise<Publisher> {
-        const response: AxiosResponse<ApiResponse<Publisher>> = await this.client.post('/publishers', publisherData);
-        return response.data.data;
-    }
-
     // Faculties endpoints
     async getFaculties(): Promise<Faculty[]> {
         const response: AxiosResponse<ApiResponse<Faculty[]>> = await this.client.get('/faculties');
@@ -330,14 +325,6 @@ class ApiClient {
         return response.data.data;
     }
 
-
-    async getRecentActivity(limit = 10): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/loans/recent', {
-            params: { limit }
-        });
-        return response.data.data;
-    }
-
     async getSystemHealth(): Promise<any> {
         const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/system/health');
         return response.data.data;
@@ -393,16 +380,6 @@ class ApiClient {
         return response.data.data;
     }
 
-    async getMyStats(): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/users/my-stats');
-        return response.data.data;
-    }
-
-    async updateNotificationSettings(settings: any): Promise<{ user: User }> {
-        const response: AxiosResponse<ApiResponse<{ user: User }>> = await this.client.patch('/users/notifications', settings);
-        return response.data.data;
-    }
-
     // Favorites endpoints
     async getFavorites(page = 1, limit = 10): Promise<{ favorites: any[]; meta: any }> {
         const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/favorites', {
@@ -451,25 +428,6 @@ class ApiClient {
             comment,
         });
         return response.data.data;
-    }
-
-    async updateReview(reviewId: string, rating?: number, comment?: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/reviews/${reviewId}`, {
-            rating,
-            comment,
-        });
-        return response.data.data;
-    }
-
-
-    async getUserReviews(page = 1, limit = 10): Promise<{ reviews: any[]; meta: any }> {
-        const response: AxiosResponse<ApiResponse<any[]>> = await this.client.get('/reviews/user/me', {
-            params: { page, limit },
-        });
-        return {
-            reviews: response.data.data,
-            meta: response.data.meta,
-        };
     }
 
     // Book management methods
@@ -537,11 +495,6 @@ class ApiClient {
         return response.data.data;
     }
 
-    async getUserDetails(id: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get(`/users/${id}`);
-        return response.data.data;
-    }
-
     async getUserDetailedStats(id: string): Promise<any> {
         const response: AxiosResponse<ApiResponse<any>> = await this.client.get(`/users/${id}/stats`);
         return response.data.data;
@@ -572,16 +525,6 @@ class ApiClient {
         status?: string;
     }): Promise<any> {
         const response: AxiosResponse<ApiResponse<any>> = await this.client.get('/reviews', { params });
-        return response.data.data;
-    }
-
-    async getReviewById(id: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.get(`/reviews/${id}`);
-        return response.data.data;
-    }
-
-    async approveReview(id: string): Promise<any> {
-        const response: AxiosResponse<ApiResponse<any>> = await this.client.put(`/reviews/${id}/approve`);
         return response.data.data;
     }
 

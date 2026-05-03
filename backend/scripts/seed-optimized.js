@@ -38,11 +38,11 @@ const sampleData = {
     ],
 
     publishers: [
-        { name: 'Éditions de l\'Éducation du Vietnam', slug: 'nxb-giao-duc-viet-nam', address: 'Hanoi', phone: '024-38220801' },
-        { name: 'Éditions de l\'Université Nationale de Hanoi', slug: 'nxb-dai-hoc-quoc-gia-ha-noi', address: 'Hanoi', phone: '024-37547065' },
-        { name: 'Éditions Sciences et Techniques', slug: 'nxb-khoa-hoc-ky-thuat', address: 'Hanoi', phone: '024-38220801' },
-        { name: 'Éditions de l\'Information et de la Communication', slug: 'nxb-thong-tin-truyen-thong', address: 'Hanoi', phone: '024-38220801' },
-        { name: 'Éditions de la Jeunesse', slug: 'nxb-tre', address: 'HCMV', phone: '028-39316289' },
+        { name: 'Éditions de l\'Éducation du Vietnam', slug: 'editions-education-vietnam', address: 'Hanoï', phone: '024-38220801' },
+        { name: 'Éditions de l\'Université Nationale de Hanoï', slug: 'editions-universite-nationale-hanoi', address: 'Hanoï', phone: '024-37547065' },
+        { name: 'Éditions Sciences et Techniques', slug: 'editions-sciences-techniques', address: 'Hanoï', phone: '024-38220801' },
+        { name: 'Éditions de l\'Information et de la Communication', slug: 'editions-information-communication', address: 'Hanoï', phone: '024-38220801' },
+        { name: 'Éditions de la Jeunesse', slug: 'editions-jeunesse', address: 'Hô-Chi-Minh-Ville', phone: '028-39316289' },
         { name: 'Addison-Wesley Professional', slug: 'addison-wesley-professional', address: 'USA', phone: '+1-800-382-3419' },
         { name: 'O\'Reilly Media', slug: 'oreilly-media', address: 'USA', phone: '+1-707-827-7000' },
         { name: 'MIT Press', slug: 'mit-press', address: 'USA', phone: '+1-617-253-5646' },
@@ -53,18 +53,18 @@ const sampleData = {
     ],
 
     faculties: [
-        { name: 'Faculté d\'Informatique', code: 'CNTT', slug: 'khoa-cong-nghe-thong-tin', description: 'Faculté d\'informatique' },
-        { name: 'Faculté de Mathématiques, Mécanique et Informatique', code: 'TOAN', slug: 'khoa-toan-co-tin-hoc', description: 'Faculté de mathématiques, de mécanique et d\'informatique' },
-        { name: 'Faculté de Physique', code: 'VATLY', slug: 'khoa-vat-ly', description: 'Faculté de physique' },
-        { name: 'Faculté de Chimie', code: 'HOAHOC', slug: 'khoa-hoa-hoc', description: 'Faculté de chimie' },
-        { name: 'Faculté de Biologie', code: 'SINHHOC', slug: 'khoa-sinh-hoc', description: 'Faculté de biologie' },
-        { name: 'Faculté de Littérature', code: 'VANHOC', slug: 'khoa-van-hoc', description: 'Faculté de littérature' },
-        { name: 'Faculté d\'Histoire', code: 'LICHSU', slug: 'khoa-lich-su', description: 'Faculté d\'histoire' },
-        { name: 'Faculté de Géographie', code: 'DIALY', slug: 'khoa-dia-ly', description: 'Faculté de géographie' },
-        { name: 'Faculté d\'Économie', code: 'KINHTE', slug: 'khoa-kinh-te', description: 'Faculté d\'économie' },
-        { name: 'Faculté de Psychologie', code: 'TAMLY', slug: 'khoa-tam-ly-hoc', description: 'Faculté de psychologie' },
-        { name: 'Faculté de Philosophie', code: 'TRIET', slug: 'khoa-triet-hoc', description: 'Faculté de philosophie' },
-        { name: 'Faculté d\'Administration des affaires', code: 'QTKD', slug: 'khoa-quan-tri-kinh-doanh', description: 'Faculté d\'administration des affaires' }
+        { name: 'Faculté d\'Informatique', code: 'CNTT', slug: 'faculte-informatique', description: 'Faculté d\'informatique' },
+        { name: 'Faculté de Mathématiques, Mécanique et Informatique', code: 'TOAN', slug: 'faculte-mathematiques-mecanique-informatique', description: 'Faculté de mathématiques, de mécanique et d\'informatique' },
+        { name: 'Faculté de Physique', code: 'VATLY', slug: 'faculte-physique', description: 'Faculté de physique' },
+        { name: 'Faculté de Chimie', code: 'HOAHOC', slug: 'faculte-chimie', description: 'Faculté de chimie' },
+        { name: 'Faculté de Biologie', code: 'SINHHOC', slug: 'faculte-biologie', description: 'Faculté de biologie' },
+        { name: 'Faculté de Littérature', code: 'VANHOC', slug: 'faculte-litterature', description: 'Faculté de littérature' },
+        { name: 'Faculté d\'Histoire', code: 'LICHSU', slug: 'faculte-histoire', description: 'Faculté d\'histoire' },
+        { name: 'Faculté de Géographie', code: 'DIALY', slug: 'faculte-geographie', description: 'Faculté de géographie' },
+        { name: 'Faculté d\'Économie', code: 'KINHTE', slug: 'faculte-economie', description: 'Faculté d\'économie' },
+        { name: 'Faculté de Psychologie', code: 'TAMLY', slug: 'faculte-psychologie', description: 'Faculté de psychologie' },
+        { name: 'Faculté de Philosophie', code: 'TRIET', slug: 'faculte-philosophie', description: 'Faculté de philosophie' },
+        { name: 'Faculté d\'Administration des affaires', code: 'QTKD', slug: 'faculte-administration-affaires', description: 'Faculté d\'administration des affaires' }
     ],
 
     departments: [

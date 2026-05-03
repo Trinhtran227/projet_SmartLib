@@ -102,9 +102,9 @@ describe('Loan Endpoints', () => {
             expect(response.body.data.status).toBe('PENDING');
             expect(response.body.data.items).toHaveLength(1);
 
-            // Verify book quantity was reduced
+            // Verify book quantity is not reduced (pending loan)
             const updatedBook = await Book.findById(book._id);
-            expect(updatedBook.quantityAvailable).toBe(4); // 5 - 1
+            expect(updatedBook.quantityAvailable).toBe(5);
         });
 
         it('should not create loan with insufficient stock', async () => {

@@ -11,7 +11,7 @@ router.get('/me/loans', authenticate, authorize('USER'), [
     handleValidationErrors
 ], async (req, res) => {
     try {
-        const { status, q, page = 1, limit = 10 } = req.query;
+        const { q, page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
         const userId = req.user._id;
 
